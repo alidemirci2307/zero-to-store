@@ -144,41 +144,33 @@ Users update with `claude plugin update zero-to-store@zero-to-store` or by
 turning on auto-update.
 
 ## 7. Current status (2026-10-14) and next steps
-- [x] v1.0.0 content complete; validate.sh green locally; plugin install
-  verified in an isolated config.
-- [x] Repo created **PRIVATE** with description, 15 topics and Discussions
-  enabled. Initial commit pushed.
-- [x] **v1.0.0 released** (2026-10-14): annotated tag `v1.0.0`. The GitHub
-  Release (CHANGELOG notes + `zero-to-store-skill.zip`) was created manually
-  with `gh`, because `release.yml` can't run on the private repo. From the
-  next version on, use `scripts/release.sh` (needs Actions → public repo).
-- [ ] Deferred by the maintainer: dogfood the skill end to end on a small real
-  app before promoting; consider a "beta" label until then. Also from the
-  self-review: split rules into on-demand sections (context cost), enforce key
-  rules with lint/hooks + `claude plugin eval`, optional modules (email auth,
-  no ads, other hosting), a dated "store facts" file, and revisit committing
-  keystores.
-- [!] GitHub Actions does not run on the private repo ("Actions budget is
-  preventing further use" — the account's budget for private minutes). Public
-  repos run free, so this resolves when the repo goes public.
-- [ ] WAITING FOR THE MAINTAINER: review the private repo, then say "public
-  yap". Then:
-  1. `gh repo edit alidemirci2307/zero-to-store --visibility public --accept-visibility-change-consequences`
-  2. Re-run CI (`gh run rerun <id>` or push) and confirm it is green. If the
-     `npx @anthropic-ai/claude-code plugin validate .` step can't run in CI,
-     make that step non-blocking.
-  3. Next release via `./scripts/release.sh` → check that `release.yml`
-     publishes the release + zip.
-  4. Test the public install from a clean config:
-     `/plugin marketplace add alidemirci2307/zero-to-store`.
+- [x] **Public** repo with description, 15 topics and Discussions enabled.
+  Commits use `Ali Demirci <alidemirci2307@gmail.com>`; this is set in the
+  repo-local git config (the global config has a different address). History
+  was rewritten once, before going public.
+- [x] **v1.0.0 released** by `release.yml` (tag push): GitHub Release with
+  CHANGELOG notes and `zero-to-store-skill.zip`. CI is green on GitHub.
+  `claude plugin validate .` has one expected warning: the root CLAUDE.md is
+  not loaded for users.
+- [x] Verified: anonymous public install (`/plugin marketplace add
+  alidemirci2307/zero-to-store`) works from a clean config.
+- [x] The maintainer's own Claude Code has the plugin installed from GitHub
+  (user scope). The legacy `proje-kickoff` skill and `/kickoff` command were
+  deleted at the maintainer's request.
+- [ ] Next versions: `./scripts/release.sh patch|minor|major` (fully automated
+  now).
 - [ ] Maintainer (manual, no API): upload `docs/images/banner.png` under
   Settings → General → Social preview.
-- [ ] Promotion (after public; offer to draft English posts):
+- [ ] Deferred by the maintainer: dogfood the skill end to end on a small real
+  app (and consider a "beta" label until then). Also from the self-review:
+  split rules into on-demand sections (context cost), enforce key rules with
+  lint/hooks + `claude plugin eval`, optional modules (email auth, no ads,
+  other hosting), a dated "store facts" file, and revisit committing
+  keystores.
+- [ ] Promotion (offer to draft English posts):
   - submit to Anthropic's plugin directory
   - PRs to awesome-claude-code lists
   - r/ClaudeAI, r/FlutterDev, Show HN, X/LinkedIn demo video
-- [ ] Optional: remove the legacy `~/.claude/skills/proje-kickoff` and
-  `~/.claude/commands/kickoff.md` (maintainer decides).
 - [ ] Note: GitHub's `ubuntu-latest` moves to Ubuntu 26 from 2026-10-19. If CI
   breaks after that, pin `ubuntu-24.04`.
 

@@ -167,10 +167,30 @@ turning on auto-update.
   lint/hooks + `claude plugin eval`, optional modules (email auth, no ads,
   other hosting), a dated "store facts" file, and revisit committing
   keystores.
-- [ ] Promotion (offer to draft English posts):
-  - submit to Anthropic's plugin directory
-  - PRs to awesome-claude-code lists
-  - r/ClaudeAI, r/FlutterDev, Show HN, X/LinkedIn demo video
+- [ ] **Promotion: launch kit ready, not posted yet.** Page with copy buttons
+  and limit counters: https://claude.ai/artifact/24uqFZhCyFVfPF7oK7mnMa (the
+  maintainer's artifact; source was
+  `<scratchpad>/launch-kit.html`, republish edits to the same URL).
+  - Texts (EN): X thread (6 tweets), Show HN title + first comment,
+    r/ClaudeAI, r/FlutterDev, LinkedIn, awesome-list entry + PR text,
+    Anthropic plugin directory short/long description, Discord.
+  - Texts (TR): one X tweet and a LinkedIn post.
+  - Posting plan:
+    0. Upload the social preview and pin the repo on the profile.
+    1. Day 1 (Tue–Thu, 16:00–18:00 Turkey time): Show HN + its first
+       comment, X thread. Answer every comment in the first 3 hours.
+    2. Day 2: r/ClaudeAI + LinkedIn (EN, TR).
+    3. Day 3: r/FlutterDev (read the sub's self-promo rules first).
+    4. Same week: awesome-list PRs, directory submission, Discord.
+  - Tone rules used in all texts: ask for feedback, never for upvotes/stars
+    (vote solicitation breaks HN/Reddit rules); state honestly that it is
+    v1.0 and the store-API parts are new; no "battle-tested" claims.
+  - Limits checked: X ≤ 280 with links counted as 23 and emoji as 2; HN
+    title ≤ 80; directory short description ≤ 160.
+  - If facts change (version, features, install command), update the kit
+    page too.
+  - Still to do later: a short demo video of a real kickoff → store run
+    (the Motion artifact type can help), ideally after dogfooding.
 - [ ] Note: GitHub's `ubuntu-latest` moves to Ubuntu 26 from 2026-10-19. If CI
   breaks after that, pin `ubuntu-24.04`.
 

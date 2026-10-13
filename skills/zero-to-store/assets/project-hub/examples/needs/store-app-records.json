@@ -1,0 +1,81 @@
+{
+  "id": "store-app-records",
+  "title": "Reserve the app name in both stores",
+  "category": "Accounts",
+  "priority": "high",
+  "status": "pending",
+  "createdAt": "2026-10-13T09:00:00Z",
+  "eta": "10 min",
+  "phases": [
+    "01"
+  ],
+  "summary": "Create the app record in App Store Connect and Play Console with the approved name and package name.",
+  "why": "App names are unique on the App Store; if not reserved early, someone else can take it. Release automation and account verification (`fastlane verify_accounts`) do not work without these records.",
+  "blocks": [
+    "Phase 01 — iOS/Android project identifiers",
+    "Phase 09 — Release automation"
+  ],
+  "prerequisites": [
+    "The **store-accounts** record must be completed.",
+    "An App ID (Identifier) registration in Apple for the package name — in step 1."
+  ],
+  "copy": [
+    {
+      "label": "App name",
+      "value": "Recipe Planner – Meal Prep"
+    },
+    {
+      "label": "Package name / Bundle ID",
+      "value": "com.example.recipeplanner"
+    },
+    {
+      "label": "SKU",
+      "value": "recipeplanner-001"
+    }
+  ],
+  "steps": [
+    {
+      "title": "Register the Bundle ID in Apple",
+      "detail": "**Certificates, Identifiers & Profiles → Identifiers → +** → *App IDs* → *App* → Description: the app name, Bundle ID: **Explicit** and the package name above → the required capabilities (**Sign in with Apple**, **Push Notifications**) → **Register**.",
+      "url": "https://developer.apple.com/account/resources/identifiers/list",
+      "urlLabel": "Identifiers"
+    },
+    {
+      "title": "Create the app in App Store Connect",
+      "detail": "**Apps → + → New App** → platform iOS, name, primary language, Bundle ID (from the list), SKU → **Create**. If the name is taken, tell Claude; a new candidate will be chosen.",
+      "url": "https://appstoreconnect.apple.com/apps",
+      "urlLabel": "App Store Connect"
+    },
+    {
+      "title": "Create the app in Play Console",
+      "detail": "**Create app** → name, default language, *App* / *Free* or *Paid*, tick the declarations → **Create app**. The package name gets locked when the first AAB is uploaded (**play-testers** record).",
+      "url": "https://play.google.com/console",
+      "urlLabel": "Play Console"
+    }
+  ],
+  "warnings": [
+    "Do not act in the wrong account: the account/team name on the page must match the one in the **store-accounts** record (RULES.md Section 12.8).",
+    "Once a package name has been used, it cannot be changed or reused for another app."
+  ],
+  "fields": [
+    {
+      "key": "asc_created",
+      "label": "The app record was created in App Store Connect **in the right team**",
+      "type": "confirm"
+    },
+    {
+      "key": "apple_app_id",
+      "label": "Apple app ID (App Information → Apple ID)",
+      "type": "text",
+      "placeholder": "6740000000",
+      "pattern": "^\\d{9,12}$",
+      "patternHint": "A 9-12 digit number.",
+      "target": "docs/RELEASE.md + landing Smart App Banner"
+    },
+    {
+      "key": "play_created",
+      "label": "The app was created in Play Console **in the right developer account**",
+      "type": "confirm"
+    }
+  ]
+}

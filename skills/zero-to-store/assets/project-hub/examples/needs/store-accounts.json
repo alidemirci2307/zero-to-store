@@ -1,0 +1,86 @@
+{
+  "id": "store-accounts",
+  "title": "Store accounts to publish from",
+  "category": "Accounts",
+  "priority": "high",
+  "status": "pending",
+  "createdAt": "2026-10-13T08:55:00Z",
+  "eta": "5 min",
+  "phases": [
+    "01",
+    "09"
+  ],
+  "summary": "Settle which Google Play and Apple developer accounts the app will be published from.",
+  "why": "If you have more than one account (personal/company), creating or publishing an app in the wrong one cannot be undone; the package name gets locked to that account. Claude performs **no store action** until this record is processed, and before every action it verifies that the active account matches it.",
+  "blocks": [
+    "Phase 01 — Reserving the app name",
+    "Phase 09 — Release automation"
+  ],
+  "prerequisites": [
+    "Google Play Console developer account (one-time 25 USD) and a paid Apple Developer Program membership (99 USD per year)."
+  ],
+  "steps": [
+    {
+      "title": "Open Play Console and select the account to publish from",
+      "detail": "If you have more than one Google account, switch to the right one at the top right; if you have more than one developer account, pick the right one from the account selector at the top left.",
+      "url": "https://play.google.com/console",
+      "urlLabel": "Play Console"
+    },
+    {
+      "title": "Copy the developer account ID",
+      "detail": "The long number in `play.google.com/console/u/0/developers/**<ID>**/…` in the address bar. Also take the developer name from **Settings → Developer account → Account details**."
+    },
+    {
+      "title": "Select the right team in your Apple Developer account",
+      "detail": "If you have more than one team, switch to the right one from the name menu at the top right.",
+      "url": "https://developer.apple.com/account",
+      "urlLabel": "developer.apple.com/account"
+    },
+    {
+      "title": "Copy the team name and Team ID",
+      "detail": "The *Membership details* card shows the **Team Name** and **Team ID** (10 characters)."
+    }
+  ],
+  "warnings": [
+    "Do not act in the wrong account: this record is the reference for verification in all later store actions (RULES.md Section 12.8)."
+  ],
+  "fields": [
+    {
+      "key": "play_developer_name",
+      "label": "Play developer name",
+      "type": "text",
+      "placeholder": "Example Software Ltd.",
+      "target": "docs/RELEASE.md"
+    },
+    {
+      "key": "play_developer_id",
+      "label": "Play developer account ID",
+      "type": "text",
+      "placeholder": "1234567890123456789",
+      "pattern": "^\\d{10,25}$",
+      "patternHint": "The number after developers/ in the address bar.",
+      "target": "docs/RELEASE.md"
+    },
+    {
+      "key": "apple_team_name",
+      "label": "Apple team name",
+      "type": "text",
+      "placeholder": "Example Software Ltd.",
+      "target": "docs/RELEASE.md"
+    },
+    {
+      "key": "apple_team_id",
+      "label": "Apple Team ID",
+      "type": "text",
+      "placeholder": "A1B2C3D4E5",
+      "pattern": "^[A-Z0-9]{10}$",
+      "patternHint": "10 characters: uppercase letters and digits.",
+      "target": "docs/RELEASE.md + Fastfile TEAM_ID + Xcode DEVELOPMENT_TEAM"
+    },
+    {
+      "key": "confirmed",
+      "label": "These two accounts are the **correct** ones to publish the app from",
+      "type": "confirm"
+    }
+  ]
+}

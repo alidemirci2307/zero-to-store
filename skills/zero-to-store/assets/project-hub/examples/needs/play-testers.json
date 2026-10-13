@@ -1,0 +1,68 @@
+{
+  "id": "play-testers",
+  "title": "Testers and the first Android upload",
+  "category": "Google Play",
+  "priority": "high",
+  "status": "pending",
+  "createdAt": "2026-10-13T09:07:00Z",
+  "eta": "15 min",
+  "phases": [
+    "09"
+  ],
+  "summary": "Create the \"testers\" list, upload the first AAB to Play by hand and submit the tester emails.",
+  "why": "The Play API does not work until the app has its first release, and it cannot manage tester lists. After this one-time setup, `./release.sh mobile android internal` distributes every release to internal + closed testing automatically. The same emails are also added to the TestFlight \"testers\" group.",
+  "blocks": [
+    "Phase 09 — Android test distribution"
+  ],
+  "prerequisites": [
+    "**store-app-records** must be completed.",
+    "The first AAB produced by Claude: `build/app/outputs/bundle/release/app-release.aab`."
+  ],
+  "steps": [
+    {
+      "title": "Add the \"testers\" list to Internal testing",
+      "detail": "**Test and release → Testing → Internal testing → Testers** tab → **Create email list** → name: `testers` → add the emails → **Save**.",
+      "url": "https://play.google.com/console",
+      "urlLabel": "Play Console"
+    },
+    {
+      "title": "Upload the first AAB by hand",
+      "detail": "On the same page, **Create new release** → drag in the AAB → write the release notes → **Next → Save and publish**."
+    },
+    {
+      "title": "Select the same list for Closed testing (Alpha)",
+      "detail": "**Testing → Closed testing → Alpha → Testers** → check the `testers` list → save. Copy the opt-in link."
+    },
+    {
+      "title": "If it is a new personal account: 12 testers × 14 days",
+      "detail": "For personal accounts created after 2023, at least **12 testers must test for 14 days** continuously in closed testing before you can move to production. Add at least 12 people to the list."
+    }
+  ],
+  "warnings": [
+    "Do not act in the wrong account: the account/team name on the page must match the one in the **store-accounts** record (RULES.md Section 12.8)."
+  ],
+  "fields": [
+    {
+      "key": "emails",
+      "label": "Tester emails (one person per line: email,First name,Last name)",
+      "type": "textarea",
+      "placeholder": "jane@example.com,Jane,Doe",
+      "target": "fastlane/testers.txt (TestFlight) — Play listesi Console'da"
+    },
+    {
+      "key": "opt_in_link",
+      "label": "Closed testing opt-in link",
+      "type": "text",
+      "required": false,
+      "placeholder": "https://play.google.com/apps/testing/com.example.recipeplanner",
+      "pattern": "^https://play\\.google\\.com/apps/testing/",
+      "patternHint": "Starts with play.google.com/apps/testing/…",
+      "target": "docs/RELEASE.md"
+    },
+    {
+      "key": "first_aab",
+      "label": "The first AAB was uploaded to internal testing and the **testers** list is selected on both tracks",
+      "type": "confirm"
+    }
+  ]
+}

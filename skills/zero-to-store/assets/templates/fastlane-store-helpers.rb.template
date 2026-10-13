@@ -1,0 +1,150 @@
+# fastlane/helpers/store.rb — Fastfile helpers (standalone, testable)
+# - Release notes (CHANGELOG + translations)
+# - Store metadata and screenshot validation (character limits, ASO/policy rules)
+# All functions take the CFG hash from the Fastfile as a parameter:
+#   { root:, locales: { "en" => { android: "en-US", ios: "en-US" } }, default_lang: "en" }
+require "fileutils"
+
+module StoreHelpers
+  IOS_LIMITS = { "name" => 30, "subtitle" => 30, "keywords" => 100, "promotional_text" => 170, "description" => 4000 }.freeze
+  IOS_REQUIRED = %w[name subtitle keywords description privacy_url support_url].freeze
+  IOS_ROOT_REQUIRED = %w[copyright primary_category].freeze
+  ANDROID_LIMITS = { "title" => 30, "short_description" => 80, "full_description" => 4000 }.freeze
+  ANDROID_REQUIRED = %w[title short_description full_description].freeze
+  PLAY_NOTES_LIMIT = 500
+  IOS_SHOTS = 3..10   # rule: the first 3 screenshots tell the story (Apple allows: 1-10)
+  PLAY_SHOTS = 4..8   # Play: 2-8; at least 4 to be featured
+  # Play metadata policy: performance/promotional wording in the title is forbidden
+  PROMO_WORDS = %w[best top free sale discount cheapest
+                   en\ iyi ücretsiz bedava indirim].freeze
+  # May count as promotional depending on context (e.g. "New York" is a valid name) -> warning
+  SOFT_PROMO_WORDS = %w[new yeni kampanya].freeze
+  EMOJI = /\p{Extended_Pictographic}/
+  IMG = "*.{png,jpg,jpeg}"
+
+  module_function
+
+  def read(path)
+    File.exist?(path) ? File.read(path, encoding: "UTF-8").strip : nil
+  end
+
+  # pubspec.yaml -> ["1.2.0", 42]
+  def pubspec_version(cfg)
+    line = read(File.join(cfg[:root], "pubspec.yaml")).to_s[/^version:\s*(\S+)/, 1]
+    raise "no version line in pubspec.yaml" unless line
+    name, code = line.split("+")
+    [name, code.to_i]
+  end
+
+  # Converts a CHANGELOG section ("1.2.0" or "Unreleased") into plain text suitable for the store
+  def changelog_section(cfg, heading)
+    text = read(File.join(cfg[:root], "CHANGELOG.md")).to_s
+    section = text[/^## \[#{Regexp.escape(heading)}\].*?(?=\n## \[|\z)/m]
+    raise "no [#{heading}] section in CHANGELOG.md" unless section
+    body = section.lines.drop(1)
+                  .reject { |l| l.strip.empty? || l.start_with?("###") }
+                  .map { |l| l.sub(/^\s*[-*]\s+/, "• ").rstrip }
+                  .join("\n")
+    raise "CHANGELOG [#{heading}] section is empty" if body.empty?
+    body
+  end
+
+  # Language -> note. fastlane/release_notes/<version>/<lang>.txt; falls back to CHANGELOG for the default language
+  def release_notes(cfg, version, heading)
+    dir = File.join(cfg[:root], "fastlane/release_notes", version)
+    missing = []
+    notes = cfg[:locales].keys.to_h do |lang|
+      text = read(File.join(dir, "#{lang}.txt"))
+      text ||= changelog_section(cfg, heading) if lang == cfg[:default_lang]
+      missing << "fastlane/release_notes/#{version}/#{lang}.txt" unless text
+      [lang, text]
+    end
+    raise "Missing release note translations:\n  #{missing.join("\n  ")}" unless missing.empty?
+    long = notes.select { |_, t| t.length > PLAY_NOTES_LIMIT }
+    raise "Notes exceeding #{PLAY_NOTES_LIMIT} characters: #{long.map { |l, t| "#{l} (#{t.length})" }.join(', ')}" unless long.empty?
+    notes
+  end
+
+  # strict: true  -> production: every file and screenshot is required
+  # strict: false -> internal: only files that EXIST are validated
+  # Returns: [errors, warnings]
+  def metadata_report(cfg, strict:)
+    errors = []
+    warnings = []
+    ios_root = File.join(cfg[:root], "fastlane/metadata/ios")
+    IOS_ROOT_REQUIRED.each do |f|
+      errors << "ios: #{f}.txt missing" if strict && read(File.join(ios_root, "#{f}.txt")).to_s.empty?
+    end
+    cfg[:locales].each_value do |loc|
+      check_ios(cfg, loc[:ios], strict, errors, warnings)
+      check_android(cfg, loc[:android], strict, errors, warnings)
+    end
+    [errors, warnings]
+  end
+
+  def check_ios(cfg, locale, strict, errors, warnings)
+    dir = File.join(cfg[:root], "fastlane/metadata/ios", locale)
+    tag = "ios/#{locale}"
+    IOS_REQUIRED.each { |f| errors << "#{tag}: #{f}.txt missing" if strict && read(File.join(dir, "#{f}.txt")).to_s.empty? }
+    IOS_LIMITS.each do |f, max|
+      text = read(File.join(dir, "#{f}.txt")) or next
+      errors << "#{tag}: #{f} #{text.length}/#{max} characters" if text.length > max
+    end
+    %w[privacy_url support_url marketing_url].each do |f|
+      url = read(File.join(dir, "#{f}.txt"))
+      errors << "#{tag}: #{f} must start with https://" if url && !url.empty? && !url.start_with?("https://")
+    end
+    keywords = read(File.join(dir, "keywords.txt"))
+    check_keywords(tag, keywords, [read(File.join(dir, "name.txt")), read(File.join(dir, "subtitle.txt"))], errors, warnings) if keywords
+    shots = Dir.glob(File.join(cfg[:root], "fastlane/screenshots", locale, IMG)).size
+    errors << "#{tag}: #{shots} screenshots (must be #{IOS_SHOTS})" if (strict || shots.positive?) && !IOS_SHOTS.cover?(shots)
+  end
+
+  # Apple keywords: comma-separated, no spaces; words from the name/subtitle and duplicates are wasted
+  def check_keywords(tag, keywords, name_parts, errors, warnings)
+    errors << "#{tag}: keywords contain a space after a comma" if keywords.include?(", ")
+    errors << "#{tag}: keywords contain a line break" if keywords.include?("\n")
+    terms = keywords.split(",").map { |t| t.strip.downcase }.reject(&:empty?)
+    dupes = terms.group_by(&:itself).select { |_, v| v.size > 1 }.keys
+    errors << "#{tag}: duplicate keywords: #{dupes.join(', ')}" unless dupes.empty?
+    name_words = name_parts.compact.join(" ").downcase.scan(/[[:alnum:]]+/)
+    wasted = terms.flat_map { |t| t.split(/\s+/) }.uniq & name_words
+    warnings << "#{tag}: words already in the name/subtitle are in keywords: #{wasted.join(', ')}" unless wasted.empty?
+    warnings << "#{tag}: 'app' is unnecessary in keywords" if terms.include?("app")
+  end
+
+  def check_android(cfg, locale, strict, errors, warnings)
+    dir = File.join(cfg[:root], "fastlane/metadata/android", locale)
+    tag = "android/#{locale}"
+    ANDROID_REQUIRED.each { |f| errors << "#{tag}: #{f}.txt missing" if strict && read(File.join(dir, "#{f}.txt")).to_s.empty? }
+    ANDROID_LIMITS.each do |f, max|
+      text = read(File.join(dir, "#{f}.txt")) or next
+      errors << "#{tag}: #{f} #{text.length}/#{max} characters" if text.length > max
+    end
+    title = read(File.join(dir, "title.txt"))
+    if title
+      errors << "#{tag}: title contains an emoji (Play policy)" if title.match?(EMOJI)
+      errors << "#{tag}: title is all UPPERCASE (forbidden unless it is a brand)" if title.length > 3 && title == title.upcase && title.match?(/[[:alpha:]]{4}/)
+      bad = promo_hits(title)
+      errors << "#{tag}: promotional/performance wording in title: #{bad.join(', ')}" unless bad.empty?
+      soft = promo_hits(title, SOFT_PROMO_WORDS)
+      warnings << "#{tag}: possibly promotional word in title: #{soft.join(', ')}" unless soft.empty?
+    end
+    short = read(File.join(dir, "short_description.txt"))
+    warnings << "#{tag}: short description contains an emoji" if short&.match?(EMOJI)
+    warnings << "#{tag}: promotional wording in short description: #{promo_hits(short).join(', ')}" if short && !promo_hits(short).empty?
+    shots = Dir.glob(File.join(dir, "images/phoneScreenshots", IMG)).size
+    errors << "#{tag}: #{shots} phone screenshots (must be #{PLAY_SHOTS})" if (strict || shots.positive?) && !PLAY_SHOTS.cover?(shots)
+    %w[featureGraphic icon].each do |img|
+      errors << "#{tag}: images/#{img} missing" if strict && Dir.glob(File.join(dir, "images", "#{img}.{png,jpg,jpeg}")).empty?
+    end
+  end
+
+  def promo_hits(text, words = PROMO_WORDS)
+    # Turkish uppercase (İ/I) does not match with /i; the Turkish-rule lowercased form is also tried
+    forms = [text, text.downcase(:turkic)]
+    hits = words.select { |w| forms.any? { |t| t.match?(/(?<![[:alnum:]])#{w}(?![[:alnum:]])/i) } }
+    hits << "#1" if words.equal?(PROMO_WORDS) && text.match?(/#\s?1(?!\d)|no\.?\s?1(?!\d)/i)
+    hits
+  end
+end

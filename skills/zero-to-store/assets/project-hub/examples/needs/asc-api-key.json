@@ -1,0 +1,75 @@
+{
+  "id": "asc-api-key",
+  "title": "App Store Connect API key",
+  "category": "Apple",
+  "priority": "high",
+  "status": "pending",
+  "createdAt": "2026-10-13T09:10:00Z",
+  "eta": "5 min",
+  "phases": [
+    "09"
+  ],
+  "summary": ".p8 key file + Key ID + Issuer ID — for TestFlight and App Store uploads.",
+  "why": "fastlane uses this key to upload the iOS build to TestFlight/App Store and to manage certificates/profiles automatically (without 2FA prompts).",
+  "blocks": [
+    "Phase 09 — iOS release automation"
+  ],
+  "prerequisites": [
+    "**Admin** role in App Store Connect (required to create the key).",
+    "The **store-accounts** record must be completed; the key is created in that account."
+  ],
+  "steps": [
+    {
+      "title": "App Store Connect → **Users and Access**",
+      "url": "https://appstoreconnect.apple.com/access/integrations/api",
+      "urlLabel": "API keys page"
+    },
+    {
+      "title": "**Integrations** tab → **App Store Connect API** → **Team Keys**",
+      "detail": "If this is your first time, request access with *Request Access*; approval is instant."
+    },
+    {
+      "title": "**Generate API Key** (or **+**)",
+      "detail": "Name: `fastlane`. Access: **App Manager**. Click **Generate**."
+    },
+    {
+      "title": "Download the key",
+      "detail": "**Download API Key** → `AuthKey_XXXXXXXXXX.p8`. This file can be downloaded **only once**."
+    },
+    {
+      "title": "Copy the Key ID and Issuer ID",
+      "detail": "The Key ID is on the key's row in the list; the Issuer ID is shown above the table."
+    }
+  ],
+  "warnings": [
+    "Do not act in the wrong account: the account/team name on the page must match the one in the **store-accounts** record (RULES.md Section 12.8).",
+    "If the .p8 file is lost it cannot be downloaded again; you must revoke the key and generate a new one."
+  ],
+  "fields": [
+    {
+      "key": "p8",
+      "label": "AuthKey_….p8 file",
+      "type": "file",
+      "accept": ".p8",
+      "target": "fastlane/keys/"
+    },
+    {
+      "key": "key_id",
+      "label": "Key ID",
+      "type": "text",
+      "placeholder": "ABCDE12345",
+      "pattern": "^[A-Z0-9]{10}$",
+      "patternHint": "10 characters: uppercase letters and digits.",
+      "target": "Fastfile ASC_KEY_ID"
+    },
+    {
+      "key": "issuer_id",
+      "label": "Issuer ID",
+      "type": "text",
+      "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "patternHint": "Must be in UUID format.",
+      "target": "Fastfile ASC_ISSUER_ID"
+    }
+  ]
+}

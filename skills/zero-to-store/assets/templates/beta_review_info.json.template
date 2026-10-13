@@ -1,0 +1,8 @@
+{
+  "contact_email": "support@example.com",
+  "contact_first_name": "First",
+  "contact_last_name": "Last",
+  "contact_phone": "+1 555 123 4567",
+  "demo_account_required": false,
+  "notes": "Sign-in is done with Google or Apple. Main flow of the app: ..."
+}

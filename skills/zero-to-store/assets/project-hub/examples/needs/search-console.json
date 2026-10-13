@@ -1,0 +1,65 @@
+{
+  "id": "search-console",
+  "title": "Google Search Console and Bing verification",
+  "category": "Web / SEO",
+  "priority": "low",
+  "status": "pending",
+  "createdAt": "2026-10-13T09:25:00Z",
+  "eta": "10 min",
+  "phases": [
+    "07"
+  ],
+  "summary": "Add the domain to Search Console, verify it with a DNS TXT record, and import it into Bing.",
+  "why": "Needed to monitor how the site is indexed in Google and Bing, submit a sitemap and see errors (RULES.md Section 10.11).",
+  "blocks": [
+    "Phase 07 — Landing SEO"
+  ],
+  "prerequisites": [
+    "Access to the domain's DNS settings (Hostinger hPanel → **Domains → DNS / Nameservers**)."
+  ],
+  "steps": [
+    {
+      "title": "Search Console → **Add property → Domain**",
+      "detail": "Enter the domain without `www` or `https`.",
+      "url": "https://search.google.com/search-console/welcome",
+      "urlLabel": "Search Console"
+    },
+    {
+      "title": "Add the given TXT record to DNS",
+      "detail": "hPanel → **Domains → DNS / Nameservers → Add record**: Type **TXT**, Name `@`, Value: the `google-site-verification=…` string Google gives you. Propagation can take a few minutes to a few hours.",
+      "url": "https://hpanel.hostinger.com/",
+      "urlLabel": "hPanel"
+    },
+    {
+      "title": "Click **Verify** in Search Console"
+    },
+    {
+      "title": "Import into Bing Webmaster Tools from Search Console",
+      "detail": "Use **Import from Google Search Console** to add it in one click.",
+      "url": "https://www.bing.com/webmasters",
+      "urlLabel": "Bing Webmaster"
+    }
+  ],
+  "fields": [
+    {
+      "key": "domain",
+      "label": "Domain",
+      "type": "text",
+      "placeholder": "example.com",
+      "pattern": "^[a-z0-9.-]+\\.[a-z]{2,}$",
+      "patternHint": "Without https:// and www, lowercase.",
+      "target": "docs/SEO.md"
+    },
+    {
+      "key": "google_verified",
+      "label": "The domain is **verified** in Search Console",
+      "type": "confirm"
+    },
+    {
+      "key": "bing_imported",
+      "label": "Imported into Bing Webmaster Tools",
+      "type": "confirm",
+      "required": false
+    }
+  ]
+}

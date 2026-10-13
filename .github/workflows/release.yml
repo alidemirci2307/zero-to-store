@@ -1,0 +1,35 @@
+# Publishes a GitHub Release when scripts/release.sh pushes a vX.Y.Z tag:
+# notes from CHANGELOG.md + zero-to-store-skill.zip (for claude.ai skill upload / manual install).
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check tag matches plugin version
+        run: |
+          V="${GITHUB_REF_NAME#v}"
+          P=$(node -p 'require("./.claude-plugin/plugin.json").version')
+          [ "$V" = "$P" ] || { echo "tag $V != plugin.json $P"; exit 1; }
+      - name: Build skill zip
+        run: (cd skills && zip -qr "$GITHUB_WORKSPACE/zero-to-store-skill.zip" zero-to-store)
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V="${GITHUB_REF_NAME#v}"
+          bash skills/zero-to-store/assets/repo/scripts/release/changelog-section.sh CHANGELOG.md "$V" > notes.md
+          {
+            echo
+            echo "**Update:** \`claude plugin update zero-to-store@zero-to-store\` · **Install:** \`/plugin marketplace add ${GITHUB_REPOSITORY}\`"
+          } >> notes.md
+          gh release create "$GITHUB_REF_NAME" --title "zero-to-store $GITHUB_REF_NAME" --notes-file notes.md --verify-tag --latest \
+            zero-to-store-skill.zip

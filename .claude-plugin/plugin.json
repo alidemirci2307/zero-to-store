@@ -1,0 +1,11 @@
+{
+  "name": "zero-to-store",
+  "displayName": "zero-to-store",
+  "version": "1.0.0",
+  "description": "From app idea to the App Store & Google Play: Flutter + React admin + Supabase kickoff with strict architecture, ASO/SEO, store-policy and fully automated multi-language releases — plus a live local Project Hub.",
+  "author": { "name": "Ali Demirci", "url": "https://github.com/alidemirci2307" },
+  "homepage": "https://github.com/alidemirci2307/zero-to-store",
+  "repository": "https://github.com/alidemirci2307/zero-to-store",
+  "license": "MIT",
+  "keywords": ["flutter", "supabase", "react", "fastlane", "aso", "seo", "app-store", "google-play", "monorepo", "kickoff", "claude-skill"]
+}

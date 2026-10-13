@@ -1,0 +1,18 @@
+// test_driver/integration_test.dart — writes screenshots to disk on the host:
+//   build/screenshots/raw/<SCREENSHOT_LOCALE>/<SCREENSHOT_DEVICE>/<name>.png
+import 'dart:io';
+
+import 'package:integration_test/integration_test_driver_extended.dart';
+
+Future<void> main() async {
+  final locale = Platform.environment['SCREENSHOT_LOCALE'] ?? 'en';
+  final device = Platform.environment['SCREENSHOT_DEVICE'] ?? 'phone';
+  await integrationDriver(
+    onScreenshot: (String name, List<int> bytes, [Map<String, Object?>? args]) async {
+      final file = File('build/screenshots/raw/$locale/$device/$name.png');
+      file.parent.createSync(recursive: true);
+      file.writeAsBytesSync(bytes);
+      return true;
+    },
+  );
+}

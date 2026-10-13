@@ -1,0 +1,29 @@
+# .github/workflows/supabase-keepalive.yml
+# Supabase free tier projects are paused if they receive no requests for 7 days.
+# This workflow sends a lightweight select every day to keep the project awake.
+# Required secrets (repo Settings > Secrets and variables > Actions):
+#   SUPABASE_URL      -> https://xxxx.supabase.co
+#   SUPABASE_ANON_KEY -> anon public key
+name: Supabase Keep-Alive
+
+on:
+  schedule:
+    - cron: "17 6 * * *" # every day at 06:17 UTC
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/app_config?select=id&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
+          echo "HTTP $STATUS"
+          # 200 (ok) and 401/404 (project is awake but the table/RLS differs) are accepted
+          case "$STATUS" in
+            200|401|404) exit 0 ;;
+            *) echo "Supabase unreachable"; exit 1 ;;
+          esac

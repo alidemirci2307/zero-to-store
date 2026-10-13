@@ -1,0 +1,57 @@
+{
+  "id": "github-setup",
+  "title": "GitHub repo: protection and Actions secrets",
+  "category": "Repo",
+  "priority": "medium",
+  "status": "pending",
+  "createdAt": "2026-10-13T08:58:00Z",
+  "eta": "10 min",
+  "phases": [
+    "01",
+    "07"
+  ],
+  "summary": "Protect the main branch and add the secrets the deploy workflows need.",
+  "why": "Tags and GitHub Releases are the project's backup; a force-push to main or a deletion would corrupt that history. The web/panel deploy runs in GitHub Actions on a tag and reads the FTP/Firebase credentials from secrets (RULES.md Sections 15.9, 12.6).",
+  "blocks": [
+    "Automatic web/panel deploy",
+    "Supabase keep-alive"
+  ],
+  "prerequisites": [
+    "The repo should have been created by Claude with `gh repo create --private` (if that failed, first create a **private** repo at github.com/new and enter its URL below)."
+  ],
+  "steps": [
+    {
+      "title": "Repo → **Settings → Rules → Rulesets → New branch ruleset**",
+      "detail": "Name: `main`, Enforcement: **Active**, Target: **Include default branch**. Check: **Restrict deletions**, **Block force pushes**, **Require status checks to pass** → `CI`. Click **Create**."
+    },
+    {
+      "title": "Protect tags too",
+      "detail": "**New tag ruleset** → Target: the `**/v*` pattern → **Restrict deletions** + **Restrict updates** (tags are immutable)."
+    },
+    {
+      "title": "Add the secrets: **Settings → Secrets and variables → Actions → New repository secret**",
+      "detail": "Hostinger: `HOSTINGER_FTP_SERVER`, `HOSTINGER_FTP_USERNAME`, `HOSTINGER_FTP_PASSWORD` · Firebase: `FIREBASE_SERVICE_ACCOUNT` · Supabase: `SUPABASE_URL`, `SUPABASE_ANON_KEY`. Claude will list the values for you from the relevant records."
+    }
+  ],
+  "fields": [
+    {
+      "key": "repo_url",
+      "label": "Repo URL",
+      "type": "text",
+      "placeholder": "https://github.com/username/project",
+      "pattern": "^https://github\\.com/[\\w.-]+/[\\w.-]+/?$",
+      "patternHint": "https://github.com/<owner>/<repo>",
+      "target": "git remote origin + docs/CICD.md"
+    },
+    {
+      "key": "rules_done",
+      "label": "The main and tag protection rules are **active**",
+      "type": "confirm"
+    },
+    {
+      "key": "secrets_done",
+      "label": "The required Actions secrets have been added",
+      "type": "confirm"
+    }
+  ]
+}

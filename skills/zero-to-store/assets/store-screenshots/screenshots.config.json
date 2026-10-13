@@ -1,0 +1,121 @@
+{
+  "brand": {
+    "background": [
+      "#4f46e5",
+      "#9333ea"
+    ],
+    "text": "#ffffff",
+    "accent": "#fde68a",
+    "font": "-apple-system, 'SF Pro Display', Inter, 'Segoe UI', Roboto, sans-serif"
+  },
+  "locales": {
+    "en": {
+      "ios": "en-US",
+      "android": "en-US"
+    },
+    "tr": {
+      "ios": "tr",
+      "android": "tr-TR"
+    }
+  },
+  "capture": {
+    "iphone": "iPhone 17 Pro Max",
+    "ipad": "iPad Pro 13-inch (M4)",
+    "android": "emulator-5554"
+  },
+  "targets": [
+    {
+      "id": "ios69",
+      "store": "ios",
+      "device": "iphone",
+      "raw": "iphone",
+      "width": 1320,
+      "height": 2868
+    },
+    {
+      "id": "android",
+      "store": "android",
+      "device": "android",
+      "raw": "android",
+      "width": 1080,
+      "height": 1920,
+      "playType": "phoneScreenshots",
+      "deviceWidth": 72
+    }
+  ],
+  "slides": [
+    {
+      "raw": "01_home",
+      "eyebrow": {
+        "en": "Meal planner",
+        "tr": "Yemek planlayıcı"
+      },
+      "title": {
+        "en": "Plan your week in *seconds*",
+        "tr": "Haftanı *saniyeler* içinde planla"
+      },
+      "subtitle": {
+        "en": "Recipes, groceries and meals in one place",
+        "tr": "Tarifler, alışveriş ve öğünler tek yerde"
+      }
+    },
+    {
+      "raw": "02_recipe",
+      "title": {
+        "en": "Step-by-step *recipes*",
+        "tr": "Adım adım *tarifler*"
+      },
+      "subtitle": {
+        "en": "Clear steps, timers and photos",
+        "tr": "Net adımlar, zamanlayıcılar ve fotoğraflar"
+      },
+      "theme": {
+        "background": [
+          "#0f766e",
+          "#4f46e5"
+        ]
+      }
+    },
+    {
+      "raw": "03_list",
+      "title": {
+        "en": "Smart *grocery* list",
+        "tr": "Akıllı *alışveriş* listesi"
+      },
+      "subtitle": {
+        "en": "Built automatically from your plan",
+        "tr": "Planından otomatik oluşur"
+      }
+    },
+    {
+      "raw": "04_settings",
+      "title": {
+        "en": "Made for *your* diet",
+        "tr": "*Sana* özel beslenme"
+      },
+      "subtitle": {
+        "en": "Vegan, gluten-free and more",
+        "tr": "Vegan, glutensiz ve fazlası"
+      },
+      "theme": {
+        "background": [
+          "#be185d",
+          "#7c3aed"
+        ]
+      }
+    }
+  ],
+  "featureGraphic": {
+    "raw": "01_home",
+    "rawDevice": "android",
+    "icon": "assets/icon/icon.png",
+    "title": {
+      "en": "Plan meals in *seconds*",
+      "tr": "Öğünleri *saniyeler* içinde planla"
+    },
+    "subtitle": {
+      "en": "Recipes · groceries · weekly plan",
+      "tr": "Tarifler · alışveriş · haftalık plan"
+    }
+  }
+}

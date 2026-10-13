@@ -1,0 +1,5 @@
+# pnpm workspace — panel, web and shared TS packages (e.g. packages/supabase-types)
+packages:
+  - apps/panel
+  - apps/web
+  - packages/*

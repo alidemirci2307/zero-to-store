@@ -1,0 +1,5 @@
+# Gemfile — at the project root. Pins the fastlane version; after `bundle install` it is
+# committed together with Gemfile.lock. release.sh uses `bundle exec fastlane`.
+source "https://rubygems.org"
+
+gem "fastlane"

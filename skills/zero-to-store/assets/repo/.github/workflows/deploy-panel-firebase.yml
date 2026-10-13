@@ -1,0 +1,61 @@
+# .github/workflows/deploy-panel-firebase.yml — when a panel/vX.Y.Z tag is pushed (./release.sh panel)
+# builds, deploys to Firebase Hosting (live) and attaches a dist.zip backup to the GitHub Release.
+# ROLLBACK: Actions > this workflow > "Run workflow" > enter an older tag (e.g. panel/v0.4.0).
+# Secret: FIREBASE_SERVICE_ACCOUNT (Firebase Console > Project settings > Service accounts > JSON)
+# apps/panel/firebase.json: "public": "dist" + SPA rewrite ("**" -> "/index.html")
+name: Deploy Panel (Firebase Hosting)
+
+on:
+  push:
+    tags: ["panel/v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to redeploy (rollback), e.g. panel/v0.4.0"
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: deploy-panel
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      APP: panel
+      TAG: ${{ inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter ./apps/${{ env.APP }} build
+
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          channelId: live
+          projectId: your-firebase-project-id # PROJECT_ID: change this
+          entryPoint: apps/panel
+
+      - name: GitHub Release (dist backup)
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${TAG#"$APP"/v}"
+          scripts/release/changelog-section.sh "apps/$APP/CHANGELOG.md" "$VERSION" > notes.md
+          (cd "apps/$APP/dist" && zip -qr "$GITHUB_WORKSPACE/$APP-dist-$VERSION.zip" .)
+          gh release create "$TAG" --title "${APP^} v$VERSION" --notes-file notes.md --verify-tag \
+            "$APP-dist-$VERSION.zip"

@@ -1,0 +1,63 @@
+# .github/workflows/deploy-web-hostinger.yml — when a web/vX.Y.Z tag is pushed (./release.sh web)
+# builds, uploads to Hostinger via FTPS and attaches a dist.zip backup to the GitHub Release.
+# ROLLBACK: Actions > this workflow > "Run workflow" > enter an older tag (e.g. web/v1.2.0).
+# If the panel should also go to Hostinger: copy this file as deploy-panel-hostinger.yml,
+# set APP=panel, change the tag filter to "panel/v*" and SERVER_DIR; add apps/panel/public/.htaccess.
+# Secrets: HOSTINGER_FTP_SERVER, HOSTINGER_FTP_USERNAME, HOSTINGER_FTP_PASSWORD
+name: Deploy Web (Hostinger)
+
+on:
+  push:
+    tags: ["web/v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to redeploy (rollback), e.g. web/v1.2.0"
+        required: true
+
+permissions:
+  contents: write # to create the GitHub Release
+
+concurrency:
+  group: deploy-web
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      APP: web
+      TAG: ${{ inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter ./apps/${{ env.APP }} build
+
+      - name: Deploy via FTPS
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          protocol: ftps # encrypted FTP; use ftp if the server does not support it (record it in DECISIONS.md)
+          server: ${{ secrets.HOSTINGER_FTP_SERVER }}
+          username: ${{ secrets.HOSTINGER_FTP_USERNAME }}
+          password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
+          local-dir: apps/${{ env.APP }}/dist/
+          server-dir: public_html/ # SERVER_DIR: target folder (change for a subdomain)
+
+      - name: GitHub Release (dist backup)
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${TAG#"$APP"/v}"
+          scripts/release/changelog-section.sh "apps/$APP/CHANGELOG.md" "$VERSION" > notes.md
+          (cd "apps/$APP/dist" && zip -qr "$GITHUB_WORKSPACE/$APP-dist-$VERSION.zip" .)
+          gh release create "$TAG" --title "${APP^} v$VERSION" --notes-file notes.md --verify-tag \
+            "$APP-dist-$VERSION.zip"

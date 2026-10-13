@@ -1,0 +1,68 @@
+/* Store screenshot template — render.mjs renders each image as a page at the exact store size.
+   Viewport = image size; so measurements are in vw (image width) and
+   cqw (device screen width). Colors/font come from the config. */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100vw; height: 100vh; overflow: hidden; }
+body {
+  position: relative; display: flex; flex-direction: column; align-items: center;
+  font-family: var(--font); color: var(--text); -webkit-font-smoothing: antialiased;
+  background: radial-gradient(120vw 90vw at 85% -10%, color-mix(in srgb, var(--accent) 38%, transparent), transparent 60%),
+              linear-gradient(165deg, var(--bg1) 0%, var(--bg2) 100%);
+}
+
+/* Decoration: soft light blobs + thin grid */
+.glow { position: absolute; border-radius: 50%; filter: blur(9vw); pointer-events: none; }
+.glow-1 { width: 75vw; height: 75vw; right: -30vw; top: 35%; background: var(--bg2); opacity: .55; }
+.glow-2 { width: 60vw; height: 60vw; left: -28vw; top: 12%; background: var(--accent); opacity: .22; }
+.grid {
+  position: absolute; inset: 0; opacity: .07; pointer-events: none;
+  background-image: linear-gradient(var(--text) 1px, transparent 1px), linear-gradient(90deg, var(--text) 1px, transparent 1px);
+  background-size: 8vw 8vw; mask-image: linear-gradient(180deg, #000 0%, transparent 45%);
+}
+
+/* Caption */
+.caption { position: relative; z-index: 2; width: 100%; padding: 10vw 8vw 0; text-align: center; }
+.eyebrow {
+  display: inline-block; margin-bottom: 3vw; padding: 1.1vw 3vw; border-radius: 99vw;
+  background: color-mix(in srgb, var(--text) 16%, transparent); border: .25vw solid color-mix(in srgb, var(--text) 28%, transparent);
+  font-size: 2.9vw; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+}
+.caption h1 { font-size: var(--title-size, 8.4vw); line-height: 1.07; font-weight: 800; letter-spacing: -.028em; text-wrap: balance; }
+.caption h1 em { font-style: normal; color: var(--accent); }
+.caption p { margin-top: 2.8vw; font-size: 4.1vw; line-height: 1.32; font-weight: 500; opacity: .86; text-wrap: balance; }
+
+/* Device */
+.device {
+  position: relative; z-index: 1; flex: none; width: var(--device-w, 78vw); margin-top: 7vw;
+  padding: 2.2vw; border-radius: 12.5vw; background: #0b0c12;
+  box-shadow: 0 0 0 .45vw #2a2d3a, 0 0 0 .9vw #0b0c12, 0 5vw 12vw rgba(8, 8, 28, .5), 0 1.5vw 4vw rgba(8, 8, 28, .35);
+}
+.device.ipad { border-radius: 5vw; padding: 2.4vw; }
+.device.android { border-radius: 9vw; }
+.screen { position: relative; overflow: hidden; border-radius: 10.4vw; container-type: inline-size; background: #fff; }
+.device.ipad .screen { border-radius: 2.8vw; }
+.device.android .screen { border-radius: 7vw; }
+.screen img { display: block; width: 100%; height: auto; }
+
+/* Status bar (the raw screenshot has no system bar; it is drawn cleanly here: 9:41, full battery) */
+.statusbar {
+  position: absolute; left: 0; right: 0; top: 0; height: 12.5cqw; display: flex; align-items: center;
+  justify-content: space-between; padding: 0 7.5cqw 0 9cqw; font-size: 3.9cqw; font-weight: 600;
+  color: var(--sb, #111); letter-spacing: -.01em;
+}
+.statusbar .icons { display: flex; gap: 1.6cqw; align-items: center; }
+.statusbar svg { height: 3.1cqw; width: auto; fill: currentColor; }
+.ipad .statusbar { height: 4cqw; font-size: 1.6cqw; padding: 0 3cqw; }
+.ipad .statusbar svg { height: 1.3cqw; }
+.android .statusbar { height: 8cqw; padding: 0 6cqw; font-size: 3.4cqw; }
+.island { position: absolute; left: 50%; top: 2.6cqw; width: 28.5cqw; height: 8.4cqw; transform: translateX(-50%); border-radius: 99cqw; background: #000; }
+.punch { position: absolute; left: 50%; top: 2.4cqw; width: 3.4cqw; height: 3.4cqw; transform: translateX(-50%); border-radius: 50%; background: #000; }
+
+/* Play feature graphic (1024×500): text on the left, tilted device on the right */
+body.feature { flex-direction: row; align-items: center; }
+.feature .caption { width: 54%; padding: 0 0 0 7vw; text-align: left; }
+.feature .caption h1 { font-size: 6.2vw; }
+.feature .caption p { font-size: 2.6vw; margin-top: 1.8vw; }
+.feature .app-icon { width: 9vw; height: 9vw; border-radius: 2.2vw; margin-bottom: 2.4vw; box-shadow: 0 1vw 3vw rgba(0, 0, 0, .25); }
+.feature .device { position: absolute; right: 4vw; top: 9vw; width: 30vw; margin: 0; padding: 1vw; border-radius: 5vw; transform: rotate(-9deg); }
+.feature .screen { border-radius: 4.1vw; }

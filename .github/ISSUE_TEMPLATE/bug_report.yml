@@ -1,0 +1,29 @@
+name: Bug report
+description: Something in the skill, scripts, Project Hub or templates doesn't work
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you run or ask Claude, what did you expect, what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Output / logs
+      description: Terminal output, `node hub/server.mjs --status`, fastlane error… (remove secrets!)
+      render: shell
+  - type: input
+    id: version
+    attributes:
+      label: zero-to-store version
+      placeholder: "1.0.0 (claude plugin list)"
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      placeholder: "macOS 15, Claude Code 2.1.x, Flutter 3.x, Node 22"

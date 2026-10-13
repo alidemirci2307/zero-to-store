@@ -1,0 +1,24 @@
+# public/.htaccess — for a React/Vite SPA on Hostinger (Apache)
+# Vite copies this file to the dist/ root at build time; it ships to the server with the FTP deploy.
+# Serves requests for existing files/folders as-is and rewrites every other path
+# to index.html (client-side routing: /users/42 does not return 404 on refresh).
+# If deploying to a subfolder (domain.com/admin), set RewriteBase to /admin/ and the
+# target of the last rule to /admin/index.html; for a subdomain root, leave it as is.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>
+
+# index.html is not cached (a new deploy shows up immediately); hashed assets are cached for a long time
+<IfModule mod_headers.c>
+  <FilesMatch "index\.html$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+  </FilesMatch>
+  <FilesMatch "\.(js|css|woff2?|png|jpe?g|webp|svg)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>

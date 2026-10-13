@@ -1,0 +1,66 @@
+{
+  "id": "testflight-review-info",
+  "title": "TestFlight review contact information",
+  "category": "Apple",
+  "priority": "medium",
+  "status": "pending",
+  "createdAt": "2026-10-13T09:12:00Z",
+  "eta": "3 min",
+  "phases": [
+    "09"
+  ],
+  "summary": "The contact details Beta App Review will ask for to distribute to the external \"testers\" group.",
+  "why": "Every build distributed to external TestFlight testers goes through Apple's beta review, and Apple asks for a contact person. The details are written to `fastlane/beta_review_info.json` and sent automatically with every release.",
+  "blocks": [
+    "Phase 09 — TestFlight external distribution"
+  ],
+  "steps": [
+    {
+      "title": "Choose a person Apple can contact with questions",
+      "detail": "They must be reachable during the review; a support email is preferred."
+    },
+    {
+      "title": "If the app requires sign-in, write a note",
+      "detail": "Since sign-in is with Google/Apple, a demo account is usually not needed; briefly explain how the reviewer can try the main flow."
+    }
+  ],
+  "fields": [
+    {
+      "key": "contact_first_name",
+      "label": "First name",
+      "type": "text",
+      "target": "fastlane/beta_review_info.json"
+    },
+    {
+      "key": "contact_last_name",
+      "label": "Last name",
+      "type": "text",
+      "target": "fastlane/beta_review_info.json"
+    },
+    {
+      "key": "contact_email",
+      "label": "Email",
+      "type": "text",
+      "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+      "patternHint": "A valid email address.",
+      "target": "fastlane/beta_review_info.json"
+    },
+    {
+      "key": "contact_phone",
+      "label": "Phone (with country code)",
+      "type": "text",
+      "placeholder": "+1 555 123 4567",
+      "pattern": "^\\+[\\d\\s()-]{8,20}$",
+      "patternHint": "Must start with + and the country code.",
+      "target": "fastlane/beta_review_info.json"
+    },
+    {
+      "key": "notes",
+      "label": "Reviewer note",
+      "type": "textarea",
+      "required": false,
+      "placeholder": "Sign in with Google or Apple. Main flow: …",
+      "target": "fastlane/beta_review_info.json"
+    }
+  ]
+}

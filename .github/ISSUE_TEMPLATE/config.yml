@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions & ideas
+    url: https://github.com/alidemirci2307/zero-to-store/discussions
+    about: Ask how to use zero-to-store or share what you built with it.

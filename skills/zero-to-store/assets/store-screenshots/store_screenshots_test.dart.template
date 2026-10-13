@@ -1,0 +1,56 @@
+// integration_test/store_screenshots_test.dart — RAW screens for the store screenshots.
+// Run by: tool/store_screenshots/capture.sh (every language × device). Manually:
+//   SCREENSHOT_LOCALE=tr SCREENSHOT_DEVICE=iphone flutter drive \
+//     --driver=test_driver/integration_test.dart --target=integration_test/store_screenshots_test.dart \
+//     --dart-define=DEMO_MODE=true --dart-define=SCREENSHOT_LOCALE=tr
+//
+// Rules (RULES.md Section 11.3):
+// - Screen names must be IDENTICAL to slides[].raw in screenshots.config.json.
+// - The app launches in DEMO_MODE: ad layer OFF, realistic but fabricated demo data,
+//   onboarding/permission dialogs skipped, user treated as signed in, no debug banner,
+//   language comes from SCREENSHOT_LOCALE (see tool/store_screenshots/README.md).
+// - Navigation uses widget keys: Key('screenshot_<name>') — not found by text
+//   (text changes per language).
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
+
+import 'package:{{PAKET_ADI}}/main.dart' as app;
+
+void main() {
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
+  Future<void> shot(WidgetTester tester, String name) async {
+    await tester.pumpAndSettle(const Duration(milliseconds: 800)); // let animations settle
+    await binding.takeScreenshot(name);
+  }
+
+  Future<void> open(WidgetTester tester, String key) async {
+    await tester.tap(find.byKey(Key('screenshot_$key')));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('store screenshots', (tester) async {
+    app.main();
+    await tester.pumpAndSettle(const Duration(seconds: 2));
+    if (Platform.isAndroid) {
+      // On Android, a screenshot cannot be taken until the Flutter surface is converted to an image
+      await binding.convertFlutterSurfaceToImage();
+      await tester.pumpAndSettle();
+    }
+
+    await shot(tester, '01_home');
+
+    // TODO(project): for each slide, navigate to the relevant screen and capture it
+    await open(tester, 'recipe');
+    await shot(tester, '02_recipe');
+
+    await open(tester, 'list');
+    await shot(tester, '03_list');
+
+    await open(tester, 'settings');
+    await shot(tester, '04_settings');
+  });
+}

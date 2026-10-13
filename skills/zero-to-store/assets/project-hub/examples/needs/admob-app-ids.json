@@ -1,0 +1,74 @@
+{
+  "id": "admob-app-ids",
+  "title": "AdMob app IDs (Android + iOS)",
+  "category": "Ads",
+  "priority": "medium",
+  "status": "pending",
+  "createdAt": "2026-10-13T09:15:00Z",
+  "eta": "8 min",
+  "phases": [
+    "06"
+  ],
+  "summary": "The App ID in the form `ca-app-pub-…~…` for each platform.",
+  "why": "The ads SDK crashes at launch without an App ID. Test ads are used during development, but the App ID must be in the manifest/Info.plist from the start.",
+  "blocks": [
+    "Phase 06 — Ads infrastructure"
+  ],
+  "copy": [
+    {
+      "label": "Android package name",
+      "value": "com.example.recipeplanner"
+    },
+    {
+      "label": "iOS bundle ID",
+      "value": "com.example.recipeplanner"
+    }
+  ],
+  "steps": [
+    {
+      "title": "Sign in to AdMob → **Apps → Add app**",
+      "url": "https://apps.admob.com/",
+      "urlLabel": "AdMob"
+    },
+    {
+      "title": "Select **Android** as the platform",
+      "detail": "For “Is the app listed on a supported app store?”, answer **No** if it is not published yet; enter the app name as the name."
+    },
+    {
+      "title": "Copy the Android App ID",
+      "detail": "On the **App settings** page, in the form `ca-app-pub-XXXXXXXXXXXXXXXX~NNNNNNNNNN`."
+    },
+    {
+      "title": "Repeat the same for **iOS** and copy the iOS App ID"
+    },
+    {
+      "title": "Create and publish the **Privacy & messaging → GDPR** message",
+      "detail": "A consent form is mandatory for EU/UK users (RULES.md Section 8.3). Add both platforms to the app, then click **Publish**."
+    }
+  ],
+  "fields": [
+    {
+      "key": "android_app_id",
+      "label": "Android App ID",
+      "type": "text",
+      "placeholder": "ca-app-pub-0000000000000000~0000000000",
+      "pattern": "^ca-app-pub-\\d{16}~\\d{10}$",
+      "patternHint": "ca-app-pub-<16 digits>~<10 digits>",
+      "target": "android/app/src/main/AndroidManifest.xml"
+    },
+    {
+      "key": "ios_app_id",
+      "label": "iOS App ID",
+      "type": "text",
+      "placeholder": "ca-app-pub-0000000000000000~0000000000",
+      "pattern": "^ca-app-pub-\\d{16}~\\d{10}$",
+      "patternHint": "ca-app-pub-<16 digits>~<10 digits>",
+      "target": "ios/Runner/Info.plist GADApplicationIdentifier"
+    },
+    {
+      "key": "gdpr_done",
+      "label": "I created and **published** the GDPR message in AdMob",
+      "type": "confirm"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "zero-to-store",
+  "owner": { "name": "Ali Demirci", "url": "https://github.com/alidemirci2307" },
+  "description": "zero-to-store — app kickoff standard for Claude Code: Flutter + React admin + Supabase, ASO/SEO, automated store releases, live Project Hub.",
+  "plugins": [
+    {
+      "name": "zero-to-store",
+      "source": "./",
+      "description": "From app idea to the App Store & Google Play: Flutter + React admin + Supabase kickoff with strict rules, automated multi-language releases and a live Project Hub.",
+      "category": "development",
+      "tags": ["flutter", "supabase", "mobile", "release", "aso"]
+    }
+  ]
+}

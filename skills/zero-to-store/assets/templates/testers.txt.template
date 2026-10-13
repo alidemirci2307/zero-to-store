@@ -1,0 +1,5 @@
+# fastlane/testers.txt — people to add to the external TestFlight "testers" group
+# Each line: email[,First,Last]   (lines starting with # are comments)
+# On the Play side, the same people are added to the Play Console > Test > "testers" email list
+# (the Play API cannot manage the tester list — done via a Needs Center record).
+# ornek@example.com,Jane,Doe

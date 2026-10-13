@@ -1,0 +1,257 @@
+# apps/mobile/fastlane/Fastfile — Flutter: Android + iOS, multilingual, fully automated release
+#
+# Usage goes through the root release.sh (pre-checks + bump + commit + tag mobile/vX.Y.Z + push):
+#   ./release.sh mobile <android|ios|all> internal    -> Play internal + closed testing "testers",
+#                                                       TestFlight + external "testers" group
+#   ./release.sh mobile <android|ios|all> promote     -> the SAME tested build to production
+#                                                       (no rebuild: build once, promote)
+#   ./release.sh mobile <android|ios|all> production  -> build + straight to production (hotfix)
+# Standalone lanes:
+#   fastlane check_notes version:x.y.z   fastlane check_metadata strict:true|false
+#   fastlane verify_accounts platform:android|ios|all
+#
+# Credential files (committed because the repo is private — RULES.md Section 12.5):
+#   fastlane/keys/play-service-account.json, fastlane/keys/AuthKey_<ID>.p8,
+#   android/keys/upload-keystore.jks + android/key.properties
+# For external TestFlight distribution: fastlane/beta_review_info.json (+ optional fastlane/testers.txt)
+# iOS signing: in Xcode > Runner > Signing, "Automatically manage signing" + Team selected;
+# Info.plist must have ITSAppUsesNonExemptEncryption = false (only for apps that use HTTPS only).
+#
+# WORKING DIRECTORY: the Fastfile Ruby code and sh() run inside fastlane/, while actions run at the
+# project root. To avoid confusion, ALL paths are absolute, based on ROOT.
+
+require "json"
+require "shellwords"
+
+ROOT = File.expand_path("..") # = apps/mobile
+require File.join(ROOT, "fastlane/helpers/store.rb")
+
+default_platform(:android)
+
+APP_IDENTIFIER   = "com.example.app" # CHANGE — package name chosen per RULES.md Section 8.4
+TEAM_ID          = "XXXXXXXXXX"      # CHANGE — Apple Developer Team ID
+ASC_KEY_ID       = "XXXXXXXXXX"      # App Store Connect API key id
+ASC_ISSUER_ID    = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+ASC_KEY_PATH     = File.join(ROOT, "fastlane/keys/AuthKey_#{ASC_KEY_ID}.p8")
+PLAY_JSON_KEY    = File.join(ROOT, "fastlane/keys/play-service-account.json")
+TESTFLIGHT_GROUP = "testers"         # external TestFlight group — created automatically if missing
+PLAY_TEST_TRACK  = "alpha"           # Play closed testing track (the "testers" list lives in the Console)
+PLAY_ROLLOUT     = (ENV["PLAY_ROLLOUT"] || "0.2").to_f # production staged rollout fraction; 1 = everyone
+
+# Supported languages — SINGLE SOURCE. Must match the ARB files exactly. The first entry is the default.
+# Key: canonical language (release_notes file name). New language = add here + metadata + screenshots.
+LOCALES = {
+  "en" => { android: "en-US", ios: "en-US" },
+  "tr" => { android: "tr-TR", ios: "tr" },
+}.freeze
+CFG = { root: ROOT, locales: LOCALES, default_lang: LOCALES.keys.first }.freeze
+
+# Converts helper errors into fastlane errors
+def helper
+  yield
+rescue RuntimeError => e
+  UI.user_error!(e.message)
+end
+
+# version parameter + pubspec match + release notes for every language
+def release_context(opts)
+  version = opts[:version] || UI.user_error!("version parameter is required")
+  name, code = helper { StoreHelpers.pubspec_version(CFG) }
+  UI.user_error!("pubspec (#{name}) and version (#{version}) do not match") unless name == version
+  [opts[:track] || "internal", version, code, helper { StoreHelpers.release_notes(CFG, version, version) }]
+end
+
+def asc_api_key
+  app_store_connect_api_key(key_id: ASC_KEY_ID, issuer_id: ASC_ISSUER_ID, key_filepath: ASC_KEY_PATH)
+end
+
+desc "Are the release notes ready (does not touch files): fastlane check_notes version:x.y.z"
+lane :check_notes do |opts|
+  version = opts[:version] || UI.user_error!("version parameter is required")
+  helper { StoreHelpers.release_notes(CFG, version, "Unreleased") } # the version section does not exist yet
+  UI.success("Release notes ready: #{LOCALES.keys.join(', ')}")
+end
+
+desc "Store text/screenshot validation (every language): fastlane check_metadata strict:true|false"
+lane :check_metadata do |opts|
+  strict = opts[:strict].to_s != "false"
+  errors, warnings = StoreHelpers.metadata_report(CFG, strict: strict)
+  warnings.each { |w| UI.important("ASO warning — #{w}") }
+  UI.user_error!("Store metadata errors (#{errors.size}):\n  #{errors.join("\n  ")}") unless errors.empty?
+  UI.success("Store metadata OK (#{strict ? 'production' : 'internal'}): #{LOCALES.keys.join(', ')}")
+end
+
+desc "Do the keys belong to the CORRECT account (RULES.md Section 12.8): fastlane verify_accounts platform:all"
+lane :verify_accounts do |opts|
+  platform = (opts[:platform] || "all").to_s
+  if %w[android all].include?(platform)
+    begin
+      google_play_track_version_codes(package_name: APP_IDENTIFIER, track: "internal", json_key: PLAY_JSON_KEY)
+    rescue StandardError => e
+      UI.user_error!("Play: the service account cannot access the #{APP_IDENTIFIER} app. It may be the key of the WRONG ACCOUNT " \
+                     "or the app/first AAB does not exist yet (Section 12.1, 12.8). Release aborted.\n#{e.message}")
+    end
+    UI.success("Play: #{APP_IDENTIFIER} is in this service account's developer account ✓")
+  end
+  if %w[ios all].include?(platform)
+    asc_api_key
+    app = Spaceship::ConnectAPI::App.find(APP_IDENTIFIER)
+    UI.user_error!("App Store Connect: #{APP_IDENTIFIER} is not in this API key's team. It may be the key of the WRONG " \
+                   "ACCOUNT or the app record was not created (Section 8.4, 12.8). Release aborted.") unless app
+    UI.success("App Store Connect: \"#{app.name}\" (#{APP_IDENTIFIER}) is in this team ✓")
+  end
+end
+
+platform :android do
+  # Play upload; if the app has never been published (draft app), retries the release as a draft
+  def play_upload(params)
+    upload_to_play_store(**params.compact)
+    params[:track_promote_release_status] || params[:release_status]
+  rescue StandardError => e
+    raise unless e.message.match?(/draft app/i)
+    UI.important("The app has never been published on Play (draft app): creating the release as DRAFT. " \
+                 "Complete the first release manually from the Play Console (RULES.md Section 12.1).")
+    key = params[:track_promote_to] ? :track_promote_release_status : :release_status
+    upload_to_play_store(**params.merge(key => "draft", rollout: nil).compact)
+    "draft"
+  end
+
+  desc "Android release: fastlane android release track:internal|production version:x.y.z"
+  lane :release do |opts|
+    track, version, code, notes = release_context(opts)
+    production = track == "production"
+
+    # Play "what's new": metadata/android/<locale>/changelogs/<versionCode>.txt (every language)
+    LOCALES.each do |lang, loc|
+      dir = File.join(ROOT, "fastlane/metadata/android", loc[:android], "changelogs")
+      FileUtils.mkdir_p(dir)
+      File.write(File.join(dir, "#{code}.txt"), "#{notes[lang]}\n")
+    end
+
+    Dir.chdir(ROOT) { sh("flutter build appbundle --release") }
+
+    base = {
+      package_name: APP_IDENTIFIER, json_key: PLAY_JSON_KEY,
+      metadata_path: File.join(ROOT, "fastlane/metadata/android"),
+      # The store listing (text + screenshots) is only sent in production; tests only send the notes
+      skip_upload_metadata: !production, skip_upload_images: !production, skip_upload_screenshots: !production
+    }
+    aab = File.join(ROOT, "build/app/outputs/bundle/release/app-release.aab")
+
+    if production
+      staged = PLAY_ROLLOUT < 1
+      status = play_upload(base.merge(track: "production", aab: aab,
+                                      release_status: staged ? "inProgress" : "completed",
+                                      rollout: staged ? PLAY_ROLLOUT.to_s : nil))
+      UI.success("Android #{version} (#{code}) -> production #{staged ? "#{(PLAY_ROLLOUT * 100).round}% staged" : 'full'} [#{status}]")
+    else
+      status = play_upload(base.merge(track: "internal", aab: aab, release_status: "completed"))
+      # Promote the same build to closed testing (the "testers" list)
+      play_upload(base.merge(track: "internal", track_promote_to: PLAY_TEST_TRACK, version_code: code,
+                             skip_upload_aab: true, track_promote_release_status: status))
+      UI.success("Android #{version} (#{code}) -> internal + closed testing (#{PLAY_TEST_TRACK}) [#{status}]")
+    end
+  end
+
+  desc "Promote the tested build to production (no build): fastlane android promote version:x.y.z"
+  lane :promote do |opts|
+    _, version, code, = release_context(opts)
+    staged = PLAY_ROLLOUT < 1
+    play_upload(package_name: APP_IDENTIFIER, json_key: PLAY_JSON_KEY,
+                metadata_path: File.join(ROOT, "fastlane/metadata/android"),
+                track: PLAY_TEST_TRACK, track_promote_to: "production", version_code: code,
+                skip_upload_aab: true, track_promote_release_status: "completed",
+                rollout: staged ? PLAY_ROLLOUT.to_s : nil)
+    UI.success("Android #{version} (#{code}) #{PLAY_TEST_TRACK} -> production #{staged ? "#{(PLAY_ROLLOUT * 100).round}% staged" : 'full'}")
+  end
+end
+
+platform :ios do
+  # External TestFlight group: create it if missing (public link enabled) — fastlane does not distribute to a non-existent group
+  def ensure_testflight_group
+    app = Spaceship::ConnectAPI::App.find(APP_IDENTIFIER) || UI.user_error!("#{APP_IDENTIFIER} not found in App Store Connect")
+    group = app.get_beta_groups.find { |g| g.name == TESTFLIGHT_GROUP && !g.is_internal_group }
+    return group if group
+
+    UI.message("Creating TestFlight group \"#{TESTFLIGHT_GROUP}\"…")
+    app.create_beta_group(group_name: TESTFLIGHT_GROUP, is_internal_group: false,
+                          public_link_enabled: true, public_link_limit_enabled: false)
+  end
+
+  # fastlane/testers.txt: each line "email[,First,Last]"; lines starting with # are comments
+  def add_testflight_testers(group)
+    file = File.join(ROOT, "fastlane/testers.txt")
+    lines = File.exist?(file) ? File.readlines(file, chomp: true).map(&:strip).reject { |l| l.empty? || l.start_with?("#") } : []
+    return UI.important("fastlane/testers.txt is empty — testers can join via the public link.") if lines.empty?
+
+    testers = lines.map do |l|
+      email, first, last = l.split(",").map(&:strip)
+      { email: email, firstName: first.to_s, lastName: last.to_s }
+    end
+    group.post_bulk_beta_tester_assignments(beta_testers: testers)
+    UI.success("#{testers.size} testers in the \"#{TESTFLIGHT_GROUP}\" group.")
+  rescue StandardError => e
+    UI.important("Could not add testers (distribution continues): #{e.message}")
+  end
+
+  def beta_review_info
+    path = File.join(ROOT, "fastlane/beta_review_info.json")
+    UI.user_error!("fastlane/beta_review_info.json is missing — external TestFlight needs Beta App Review contact " \
+                   "info (Needs Center record).") unless File.exist?(path)
+    JSON.parse(File.read(path, encoding: "UTF-8"))
+  end
+
+  # App Store submission (text + screenshots + what's new, precheck, review); uses the existing build if there is no ipa
+  def submit_app_store(api_key, version, code, notes, ipa: nil)
+    upload_to_app_store(
+      api_key: api_key, ipa: ipa, app_version: version,
+      build_number: ipa ? nil : code.to_s, skip_binary_upload: ipa.nil?,
+      release_notes: LOCALES.to_h { |lang, loc| [loc[:ios], notes[lang]] },
+      metadata_path: File.join(ROOT, "fastlane/metadata/ios"),
+      screenshots_path: File.join(ROOT, "fastlane/screenshots"), overwrite_screenshots: true,
+      submit_for_review: true, automatic_release: false, # release manually after approval (Section 12.1)
+      run_precheck_before_submit: true, precheck_include_in_app_purchases: false,
+      force: true # skip the HTML preview confirmation — single command, non-interactive
+    )
+  end
+
+  desc "iOS release: fastlane ios release track:internal|production version:x.y.z"
+  lane :release do |opts|
+    track, version, code, notes = release_context(opts)
+    api_key = asc_api_key
+
+    # Flutter build + Xcode settings; signed archive via gym (API key + automatic signing)
+    Dir.chdir(ROOT) { sh("flutter build ios --release --no-codesign") }
+    auth = ["-allowProvisioningUpdates", "-authenticationKeyPath", ASC_KEY_PATH.shellescape,
+            "-authenticationKeyID", ASC_KEY_ID, "-authenticationKeyIssuerID", ASC_ISSUER_ID].join(" ")
+    ipa = build_app(workspace: File.join(ROOT, "ios/Runner.xcworkspace"), scheme: "Runner",
+                    configuration: "Release", export_method: "app-store", export_team_id: TEAM_ID,
+                    output_directory: File.join(ROOT, "build/ios/ipa"), output_name: "Runner.ipa",
+                    xcargs: auth, export_xcargs: auth)
+
+    if track == "production"
+      submit_app_store(api_key, version, code, notes, ipa: ipa)
+      UI.success("iOS #{version} (#{code}) -> submitted for App Store review.")
+    else
+      group = ensure_testflight_group
+      add_testflight_testers(group)
+      upload_to_testflight(
+        api_key: api_key, ipa: ipa,
+        localized_build_info: LOCALES.to_h { |lang, loc| [loc[:ios], { whats_new: notes[lang] }] },
+        groups: [TESTFLIGHT_GROUP], distribute_external: true, notify_external_testers: true,
+        submit_beta_review: true, beta_app_review_info: beta_review_info,
+        uses_non_exempt_encryption: false
+      )
+      link = group.public_link
+      UI.success("iOS #{version} (#{code}) -> TestFlight: internal testers + \"#{TESTFLIGHT_GROUP}\" (Beta App Review)")
+      UI.success("TestFlight public link: #{link}") if link
+    end
+  end
+
+  desc "Submit the build tested on TestFlight for App Store review (no build): fastlane ios promote version:x.y.z"
+  lane :promote do |opts|
+    _, version, code, notes = release_context(opts)
+    submit_app_store(asc_api_key, version, code, notes)
+    UI.success("iOS #{version} (#{code}) TestFlight build -> submitted for App Store review.")
+  end
+end

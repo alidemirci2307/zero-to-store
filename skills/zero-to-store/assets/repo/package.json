@@ -1,0 +1,16 @@
+{
+  "name": "{{PROJE_SLUG}}",
+  "private": true,
+  "packageManager": "pnpm@10.0.0",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev:panel": "pnpm --filter ./apps/panel dev",
+    "dev:web": "pnpm --filter ./apps/web dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r --if-present lint",
+    "test": "pnpm -r --if-present test",
+    "release": "./release.sh",
+    "changes": "./release.sh changes",
+    "hub": "node hub/server.mjs --open"
+  }
+}

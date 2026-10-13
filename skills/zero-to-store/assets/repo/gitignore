@@ -1,0 +1,38 @@
+# .gitignore (root) — copied into the project as ".gitignore"
+# Dependencies and build outputs
+node_modules/
+dist/
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+coverage/
+*.log
+.turbo/
+.cache/
+
+# Environment and secrets (key files are deliberately committed — RULES.md Section 12.5)
+.env
+.env.*
+!.env.example
+
+# iOS / Android local outputs
+apps/mobile/ios/Pods/
+apps/mobile/ios/.symlinks/
+apps/mobile/ios/Flutter/ephemeral/
+apps/mobile/android/.gradle/
+apps/mobile/android/local.properties
+apps/mobile/fastlane/report.xml
+apps/mobile/fastlane/Preview.html
+apps/mobile/fastlane/test_output/
+
+# Editor / operating system
+.DS_Store
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+
+# Project Hub submissions (it has its own .gitignore too)
+hub/inbox/

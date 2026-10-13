@@ -1,0 +1,72 @@
+{
+  "id": "hostinger-ftp",
+  "title": "Hostinger FTP credentials",
+  "category": "Web",
+  "priority": "low",
+  "status": "pending",
+  "createdAt": "2026-10-13T09:20:00Z",
+  "eta": "5 min",
+  "phases": [
+    "07"
+  ],
+  "summary": "FTP server, username and password so every web release (`./release.sh web`) is deployed automatically.",
+  "why": "When a `web/vX.Y.Z` tag is pushed, the GitHub Actions workflow builds the site and uploads it with these credentials (RULES.md Section 12.6). The values go into GitHub Secrets and are never written into code.",
+  "blocks": [
+    "Phase 07 — Landing page automatic deploy"
+  ],
+  "steps": [
+    {
+      "title": "Sign in to hPanel → **Websites** → click **Manage** next to the domain",
+      "url": "https://hpanel.hostinger.com/",
+      "urlLabel": "hPanel"
+    },
+    {
+      "title": "Left menu: **Files → FTP Accounts**"
+    },
+    {
+      "title": "Copy the FTP IP/hostname and username",
+      "detail": "They are shown in the *FTP Details* box at the top of the page."
+    },
+    {
+      "title": "If you do not know the password, set a new one with **Change FTP password**"
+    }
+  ],
+  "fields": [
+    {
+      "key": "host",
+      "label": "FTP server",
+      "type": "text",
+      "placeholder": "ftp.yourdomain.com or 123.45.67.89",
+      "target": "GitHub Secret HOSTINGER_FTP_SERVER"
+    },
+    {
+      "key": "username",
+      "label": "Username",
+      "type": "text",
+      "placeholder": "u123456789",
+      "target": "GitHub Secret HOSTINGER_FTP_USERNAME"
+    },
+    {
+      "key": "password",
+      "label": "Password",
+      "type": "secret",
+      "target": "GitHub Secret HOSTINGER_FTP_PASSWORD"
+    },
+    {
+      "key": "server_dir",
+      "label": "Target folder",
+      "type": "select",
+      "options": [
+        {
+          "value": "public_html/",
+          "label": "public_html/ (main domain)"
+        },
+        {
+          "value": "subdomain",
+          "label": "Subdomain folder (write it in the note)"
+        }
+      ],
+      "target": "deploy workflow server-dir"
+    }
+  ]
+}

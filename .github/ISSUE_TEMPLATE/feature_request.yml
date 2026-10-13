@@ -1,0 +1,18 @@
+name: Feature / rule request
+description: Suggest a new rule, template, automation or Project Hub feature
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What goes wrong or takes too long today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: The rule/behaviour you'd like. Mention the rules section if it changes one (e.g. Section 12.1).
+    validations:
+      required: true

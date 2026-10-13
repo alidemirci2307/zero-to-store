@@ -1,0 +1,5 @@
+# .gitattributes — copied into the project as ".gitattributes"
+* text=auto eol=lf
+*.{png,jpg,jpeg,webp,gif,ico,pdf,jks,p8,p12,keystore,aab,apk,ipa,zip} binary
+pnpm-lock.yaml linguist-generated=true -diff
+apps/mobile/pubspec.lock linguist-generated=true -diff

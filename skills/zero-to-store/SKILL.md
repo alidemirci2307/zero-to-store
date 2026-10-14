@@ -3,7 +3,7 @@ name: zero-to-store
 description: Kickoff standard that takes a mobile app idea from zero to the App Store and Google Play — Flutter app + React admin panel + Supabase backend + landing page, built in a monorepo with strict architecture, ASO/SEO, store-policy, release-automation and session-memory rules. Use it whenever the user starts a new app or product ("new project", "kickoff", "let's build an app", "start a Flutter app", or in Turkish "yeni proje", "proje kur", "uygulama yapalım"), turns an app idea into a real project, or wants to apply this rule set / CLAUDE.md standard to an existing project.
 license: MIT
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
   repository: "https://github.com/alidemirci2307/zero-to-store"
 ---
 

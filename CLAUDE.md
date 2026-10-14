@@ -20,10 +20,10 @@ roadmap + Needs Center) shows the user everything.
 - Repo: https://github.com/alidemirci2307/zero-to-store · owner `alidemirci2307` (gh CLI logged in)
 - Plugin/marketplace/skill name: `zero-to-store` · command `/zero-to-store:kickoff`
 - License MIT · version source of truth: `.claude-plugin/plugin.json`
-- Origin: started as the Turkish personal skill `proje-kickoff`. The old copy
-  still lives at `~/.claude/skills/proje-kickoff` and
-  `~/.claude/commands/kickoff.md`. Not removed yet; the maintainer should
-  remove it after switching to the plugin. Don't touch it unless asked.
+- Origin: started as the Turkish personal skill `proje-kickoff`. That legacy
+  copy (`~/.claude/skills/proje-kickoff`, `~/.claude/commands/kickoff.md`)
+  was deleted at the maintainer's request. The maintainer and his Claude Team
+  now get the plugin through server-managed settings (see §7).
 
 ## 2. Repo map
 ```
@@ -154,9 +154,43 @@ turning on auto-update.
   not loaded for users.
 - [x] Verified: anonymous public install (`/plugin marketplace add
   alidemirci2307/zero-to-store`) works from a clean config.
-- [x] The maintainer's own Claude Code has the plugin installed from GitHub
-  (user scope). The legacy `proje-kickoff` skill and `/kickoff` command were
-  deleted at the maintainer's request.
+- [x] **Rolled out to the maintainer's Claude Team** (2026-10-14). He is the
+  Team owner. Path: claude.ai **Organization settings → Claude Code → Managed
+  settings**. Current JSON (keep `channelsEnabled`; it was there before and is
+  unrelated):
+  ```json
+  {
+    "channelsEnabled": true,
+    "enabledPlugins": { "zero-to-store@zero-to-store": true },
+    "extraKnownMarketplaces": {
+      "zero-to-store": {
+        "autoUpdate": true,
+        "source": { "repo": "alidemirci2307/zero-to-store", "source": "github" }
+      }
+    }
+  }
+  ```
+  - Verified on the maintainer's machine: `claude plugin list` shows
+    `zero-to-store@zero-to-store 1.0.0 · Scope: managed · enabled`. The
+    earlier user-scope install is superseded, so no cleanup is needed. The
+    settings are cached in `~/.claude/remote-settings.json`.
+  - Effect: every member signed in with the Team account gets the plugin on
+    their next Claude Code start. It is forced on (managed settings win) and
+    auto-updates when plugin.json's version changes, so `scripts/release.sh`
+    ships to the whole team.
+  - Trade-off: about 170 always-on tokens per session for every member, even
+    those who don't build mobile apps. To make it opt-in, remove
+    `enabledPlugins` and keep only the marketplace; members then run
+    `/plugin install zero-to-store@zero-to-store`.
+  - Other org routes, from the official docs (not used):
+    - Organization settings → Plugins & skills → Add. GitHub sync only
+      supports private/internal repos, so a public repo needs a zip upload
+      that must be re-uploaded for every version. A plugin zip asset doesn't
+      exist yet; the release zip contains only the skill folder.
+    - Uploading `zero-to-store-skill.zip` as an org skill for claude.ai chat.
+      In chat it only works as a rule guide (no local git/Node/Flutter).
+      Org skills also sync into Claude Code and would duplicate the plugin
+      unless managed settings set `"syncClaudeAiSkills": false`.
 - [ ] Next versions: `./scripts/release.sh patch|minor|major` (fully automated
   now).
 - [ ] Maintainer (manual, no API): upload `docs/images/banner.png` under

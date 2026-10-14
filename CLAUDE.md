@@ -207,9 +207,11 @@ turning on auto-update.
       unless managed settings set `"syncClaudeAiSkills": false`.
 - [ ] Next versions: `./scripts/release.sh patch|minor|major` (fully automated
   now).
-- [ ] **v1.1 (post-launch operations) is implemented and validated in
-  [Unreleased], but not released yet.** Release with
-  `./scripts/release.sh minor` when the maintainer says so.
+- [x] **v1.1.0 released** (2026-10-14, post-launch operations) via
+  `./scripts/release.sh minor`. `release.yml` and CI are green, and the
+  release has the skill zip. The maintainer's managed install updated from
+  1.0.0 to 1.1.0 (`claude plugin update`); team members get it on their next
+  start (autoUpdate).
   - Live store calls (rollout/halt/phased) are unverified, like the other
     store lanes. API names were checked in the fastlane 2.238 source.
   - Planned for v1.2: the data scripts the DAILY_OPS template looks for in

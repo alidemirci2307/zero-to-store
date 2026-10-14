@@ -964,7 +964,8 @@
      `docs/DECISIONS.md` (decision log: date — decision — rationale),
      `docs/ASO.md` (name/id decision, keyword tables, copy, visual
      messages, experiments, ASO log), `docs/SEO.md` (keyword-to-page
-     mapping, Lighthouse results, Search Console notes)
+     mapping, Lighthouse results, Search Console notes), `docs/OPS.md`
+     (post-launch operations setup and autonomy level, Section 18)
    - If needed, a new file is opened for a new topic; its reference is
      added to CLAUDE.md. Core rule: information lives in ONE place and is
      pointed to by reference from elsewhere — the same information is not
@@ -1297,6 +1298,123 @@
    - If storage is needed: R2 or Supabase Storage (Sections 1 and 13.8)
    - If the web deploy target is Hostinger, is FTPS supported?
      (Section 12.6)
+   - Post-launch operations: daily routine on or off, and its autonomy
+     level (Section 18.2)
    ACCESS CREDENTIALS (FTP password, R2 keys, API keys, store account
    files) are NOT REQUESTED in chat — they are opened as a Needs Center
    entry (Section 16.6); questions are only for decisions and approvals.
+
+## 18. Post-launch Operations (MANDATORY when enabled)
+
+1. Scope and opt-in: after the first production release, an optional daily
+   operations routine keeps the app healthy and growing: crashes, store
+   vitals, analytics, reviews and ASO. It is chosen at kickoff (Section
+   17.8) or turned on later. The choice and its autonomy level are written
+   to `docs/OPS.md` and `ops/config.json`.
+2. Autonomy levels (the user picks one; the default is `fix-to-testing`):
+   - `observe`: collect data, add crash notes, write the report. No code
+     changes, releases, store text changes or review replies.
+   - `fix-to-testing` (default): also fixes data-proven problems and ships
+     them ONLY to the test tracks (`./release.sh mobile all internal`).
+     Promotion to production, ASO text changes and replies to 1-2 star
+     reviews are prepared and listed for the user to approve.
+   - `full-auto`: also promotes, edits ASO text and replies to every review,
+     but only through the gates of Section 18.5. The hard limits of Section
+     18.8 apply at every level.
+3. Scheduling and safety:
+   - The routine runs as a LOCAL scheduled task (e.g. Claude desktop
+     scheduled tasks), because builds and releases need the local
+     toolchain, simulators and keys. A cloud routine is allowed only for
+     `observe`.
+   - Configuration lives in `ops/config.json` (store, Firebase and analytics
+     IDs, autonomy, thresholds, notification channel). The routine prompt
+     (template: `DAILY_OPS.template.md`) holds decision logic only, no
+     hard-coded IDs or paths.
+   - A lock file (`ops/.lock`, with the start time) prevents overlapping
+     runs; a lock older than 6 hours is treated as stale and reported.
+   - If the working tree is not clean, another session may be working: only
+     collect data and report; no code changes, commits or releases.
+   - Shared devices are respected: an emulator or simulator started by
+     another routine is never closed.
+4. Data first:
+   - Data collection is deterministic (scripts, CLI or MCP calls that output
+     JSON); judgement comes after. Every claim in the report rests on a
+     number and its source; generic advice is forbidden.
+   - Sources: Crashlytics (fatal, non-fatal and ANR per platform and
+     version), Google Play Android vitals (Play Developer Reporting API:
+     user-perceived crash and ANR rates), App Store Connect diagnostics,
+     analytics funnels (Section 14), both stores' reviews and ratings, ASO
+     rankings.
+   - Robot traffic is excluded: Apple review devices on review day, Play
+     pre-launch and Test Lab devices, emulators. Human users are counted
+     separately; below 30 humans no ratios or funnels are interpreted.
+   - Daily metrics are appended to `ops/metrics.jsonl` (one JSON line per
+     day) so trends stay comparable; the Project Hub Operations tab reads it.
+5. Release gates (every level):
+   - A release happens only for a user-affecting, data-proven fix or a
+     measurable improvement; at most one release per day; never for
+     cosmetic changes, refactors or docs.
+   - Before shipping, code changes are reviewed adversarially by at least
+     two independent subagents (correctness/regression, platform/i18n);
+     `flutter analyze` and `flutter test` must pass, with a test that
+     reproduces the bug.
+   - Builds go to the test tracks first. Promotion to production requires a
+     soak period (default 24 h, set in `ops/config.json`) with no new crash
+     cluster in that build.
+   - Production is staged: Play starts at `PLAY_ROLLOUT` (default 20%) and
+     is widened with `./release.sh rollout 0.5`, then `1`; iOS uses the
+     7-day phased release.
+   - Automatic stop: if the new version's crash-free users fall below the
+     SLO of Section 18.6 or a regression appears, run `./release.sh halt`
+     at once, report it, and fix forward.
+6. Crash handling (the most important step):
+   - SLO: crash-free users ≥ 99.5% per platform; Play user-perceived crash
+     rate < 1.09% and ANR rate < 0.47% (Section 11.6).
+   - Regressions (a closed issue back in a new version) come first.
+   - Every issue looked at gets one note per day in Crashlytics ("Reviewed
+     <date> (daily ops): <root cause> → <action>"); existing notes are
+     listed first to avoid duplicates.
+   - Human-affecting crashes are fixed the same day within the autonomy
+     level. When the fix is live, the issue gets a "resolved in <version>,
+     commit <hash>" note and is closed.
+7. Reviews:
+   - Replies are written in the review's language: short, calm and
+     thankful. They never promise unreleased work, never ask for personal
+     data and never argue. A review is answered once.
+   - A reported bug is reproduced and, if real, fixed through the flow of
+     Section 18.6.
+   - Replies to 1-2 star reviews are published automatically only at
+     `full-auto`; otherwise they are drafted and listed for the user.
+   - Every sent reply is recorded in the report.
+8. Hard limits (never automated at any level; listed for the user instead):
+   - prices, subscriptions and in-app products; store account, payment, tax
+     and user or permission settings;
+   - privacy declarations (Play Data safety, App Privacy), and therefore any
+     change that collects a new data type;
+   - signing keys, certificates and keystores; toolchain upgrades pinned by
+     CI; `git push --force`; removing features; entering credentials.
+9. ASO experiments (Section 11):
+   - One field and one language group per week, so the effect is measurable.
+   - The baseline is the 7-day average before the change and the result is
+     the 7-day average after it; both go to the experiment log in
+     `docs/ASO.md`.
+   - Screenshot and icon tests use Apple Product Page Optimization and Play
+     store listing experiments instead of direct swaps.
+10. Weekly review (Mondays): 28 days of data, this week vs last week, at
+   most five actions (why = which number, measured by = which event, which
+   file), last week's actions checked, missing logging listed, ASO trend and
+   a competitor scan; written to `docs/ops/weekly-YYYY-MM-DD.md`.
+11. Reporting:
+   - Daily report `docs/ops/daily/YYYY-MM-DD.md` with fixed sections:
+     Summary, Numbers (last 7 days vs previous 7), Crashes, Reviews, ASO,
+     Development, Release, Needs from the user, Tomorrow.
+   - A three-line summary is sent as a notification (desktop or phone push,
+     or a connected Slack channel) so the owner sees it without opening
+     files.
+   - Anything only the user can do becomes a Needs Center record (Section
+     16.6), not just a line in the report.
+   - On days without a release, nothing that triggers a store build is
+     pushed (use `[ci skip]` where CI builds the mobile app).
+12. Cost: quiet days (no new crash, review or release) finish with a single
+   agent. Multi-agent work is used only for root-cause analysis, code review
+   and the weekly review, and the report says which mode was used.

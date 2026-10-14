@@ -63,6 +63,7 @@ Herhangi bir iş yapmadan önce ilgili bölümünü oku. Özet hatırlatma:
 | Reklam yerleşim planı, ad unit'ler, RevenueCat ürün/entitlement | `docs/MONETIZATION.md` |
 | Analytics event tablosu, user property'ler | `docs/ANALYTICS.md` |
 | Release süreci, fastlane, key path'leri, changelog akışı, DOĞRU store hesapları, test linkleri | `docs/RELEASE.md` |
+| Yayın sonrası operasyon: otonomi seviyesi, zamanlama, SLO, raporlar (`docs/ops/`), metrikler (`ops/`) | `docs/OPS.md` |
 | ASO: ad/paket adı kararı, kelime tabloları, store metinleri, görsel mesajları, deneyler | `docs/ASO.md` |
 | SEO: kelime-sayfa eşlemesi, Lighthouse sonuçları, Search Console | `docs/SEO.md` |
 | Store görselleri üretimi (capture + render) | `tool/store_screenshots/README.md` |

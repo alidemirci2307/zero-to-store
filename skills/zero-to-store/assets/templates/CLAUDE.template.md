@@ -64,6 +64,7 @@ Read the relevant section before doing any work. Summary reminder:
 | Ad placement plan, ad units, RevenueCat products/entitlements | `docs/MONETIZATION.md` |
 | Analytics event table, user properties | `docs/ANALYTICS.md` |
 | Release process, fastlane, key paths, changelog flow, CORRECT store accounts, test links | `docs/RELEASE.md` |
+| Post-launch operations: autonomy level, schedule, SLO, reports (`docs/ops/`), metrics (`ops/`) | `docs/OPS.md` |
 | ASO: name/package name decision, keyword tables, store texts, visual messages, experiments | `docs/ASO.md` |
 | SEO: keyword-page mapping, Lighthouse results, Search Console | `docs/SEO.md` |
 | Store visuals production (capture + render) | `tool/store_screenshots/README.md` |

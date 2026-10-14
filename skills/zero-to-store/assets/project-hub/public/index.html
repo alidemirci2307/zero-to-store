@@ -9,6 +9,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%235b5bd6'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11.5' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="app.css">
   <link rel="stylesheet" href="plan.css">
+  <link rel="stylesheet" href="ops.css">
 </head>
 <body>
   <header class="topbar">
@@ -21,6 +22,7 @@
         <span class="seg-pill" id="seg-pill" aria-hidden="true"></span>
         <a href="#/plan" data-view="plan" data-i18n="nav.plan">Plan</a>
         <a href="#/needs" data-view="needs"><span data-i18n="nav.needs">Needs</span> <span class="seg-badge" id="needs-badge" hidden></span></a>
+        <a href="#/ops" data-view="ops" data-i18n="nav.ops">Operations</a>
       </nav>
       <div class="topbar-right">
         <span class="live" id="live" data-i18n-title="live.title"><i></i><span data-i18n="live">Live</span></span>
@@ -72,6 +74,16 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
         <span data-i18n-html="needs.foot"></span>
       </footer>
+    </section>
+    <section class="view" id="view-ops" hidden>
+      <div class="view-head">
+        <div>
+          <p class="eyebrow" data-i18n="ops.eyebrow"></p>
+          <h1 data-i18n="ops.title">Operations</h1>
+          <p class="lede" data-i18n="ops.lede"></p>
+        </div>
+      </div>
+      <div id="ops-root"></div>
     </section>
   </div>
 

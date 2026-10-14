@@ -1,9 +1,11 @@
 # Project Hub (hub/) — usage guide for Claude
 
-A local page the user opens in the browser. It has two screens:
+A local page the user opens in the browser. It has three screens:
 - **Plan:** a live roadmap built from `PLAN.md` and `docs/plan/phase-XX-*.md`
 - **Needs:** the keys, files and information Claude is waiting for from the user. Each
   need record has a step-by-step "where to find it" walkthrough and a submission form.
+- **Operations:** after launch, what the daily routine saw and did (RULES.md Section 18):
+  crash-free users against the SLO, store ratings, ASO ranks and the daily/weekly reports.
 
 The user fills in the form and submits it. Values are written only under `hub/inbox/`,
 and Claude processes them from there. Rules: RULES.md Section 16.6.
@@ -149,3 +151,33 @@ forms are primary; the Turkish equivalents are also accepted.
 - Every line of the completion log starts with `- ` and sits under
   `## Phase Completion Log` (TR: `## Faz Tamamlanma Günlüğü`). The statistics section is
   `## Statistics` (TR: `## İstatistik`).
+
+## Operations tab (post-launch, RULES.md Section 18)
+The tab reads these files on every refresh; the daily routine
+(`DAILY_OPS.template.md`) writes them. Without `ops/config.json` the tab shows how to
+turn operations on.
+
+| File | Written by | Purpose |
+|---|---|---|
+| `ops/config.json` | kickoff / enabling ops | autonomy, `soakHours`, `slo`, store and analytics IDs, ASO keywords, notify channel (template: `ops-config.json.template`) |
+| `ops/metrics.jsonl` | daily routine, one line per day | trends and tiles |
+| `docs/ops/daily/YYYY-MM-DD.md` | daily routine | daily report (fixed sections) |
+| `docs/ops/weekly-YYYY-MM-DD.md` | Monday run | weekly review |
+| `ops/.lock` | daily routine while running | shown as "a run is in progress" |
+
+One `ops/metrics.jsonl` line (all fields optional except `date`; unknown fields are
+ignored; unreadable lines are skipped and counted in `--status`):
+```json
+{"date":"2026-10-13","humans":{"android":300,"ios":210},
+ "crashFreeUsersPct":{"android":99.74,"ios":99.88},"playCrashRatePct":0.21,"playAnrRatePct":0.11,
+ "openIssues":1,"rating":{"android":4.5,"ios":4.7},"reviews":{"new":3,"replied":3},
+ "aso":{"ios|us|meal planner":13,"android|us|meal planner":18},
+ "release":"1.3.1+19","mode":"single"}
+```
+- `aso` keys are `store|country|keyword`; a lower rank is better, and the tab compares
+  each rank with the line closest to 7 days earlier.
+- `release` is set only on the day a build reached a store; `mode` is `single` or
+  `multi` (which agent mode the run used).
+- Write numbers, not strings. Never put values from `hub/inbox/` into metrics.
+- API: `GET /api/state` includes `ops`; `GET /api/ops/report/<id>` returns one report
+  (`<id>` is `YYYY-MM-DD` or `weekly-YYYY-MM-DD`).

@@ -917,7 +917,8 @@
      `docs/DECISIONS.md` (karar günlüğü: tarih — karar — gerekçe),
      `docs/ASO.md` (ad/id kararı, kelime tabloları, metinler, görsel
      mesajları, deneyler, ASO günlüğü), `docs/SEO.md` (kelime-sayfa
-     eşlemesi, Lighthouse sonuçları, Search Console notları)
+     eşlemesi, Lighthouse sonuçları, Search Console notları), `docs/OPS.md`
+     (yayın sonrası operasyon kurulumu ve otonomi seviyesi, Bölüm 18)
    - Gerekirse yeni konu için yeni dosya açılır; CLAUDE.md'ye referansı
      eklenir. Ana kural: bilgi TEK yerde yaşar, başka yerden referansla
      gösterilir — aynı bilgi iki dosyaya kopyalanmaz.
@@ -1210,6 +1211,130 @@
      (İhtiyaç Merkezi `store-accounts` kaydıyla alınır — Bölüm 12.8)
    - Storage gerekiyorsa: R2 mi Supabase Storage mı (Bölüm 1 ve 13.8)
    - Web deploy hedefi Hostinger ise FTPS destekli mi (Bölüm 12.6)
+   - Yayın sonrası operasyon: günlük rutin açık mı, otonomi seviyesi ne
+     (Bölüm 18.2)
    ERİŞİM BİLGİLERİ (FTP şifresi, R2 anahtarları, API key'ler, store
    hesap dosyaları) sohbetten İSTENMEZ — İhtiyaç Merkezi kaydı olarak
    açılır (Bölüm 16.6); sorular yalnızca karar ve onaylar içindir.
+
+## 18. Yayın Sonrası Operasyon (AÇIKSA KESİN)
+
+1. Kapsam ve seçim: ilk production yayınından sonra isteğe bağlı bir
+   günlük operasyon rutini uygulamayı sağlıklı tutar ve büyütür: çökmeler,
+   store vitals verileri, analitik, yorumlar ve ASO. Kickoff'ta seçilir
+   (Bölüm 17.8) ya da sonradan açılır. Seçim ve otonomi seviyesi
+   `docs/OPS.md` ve `ops/config.json` dosyalarına yazılır.
+2. Otonomi seviyeleri (kullanıcı birini seçer; varsayılan `fix-to-testing`):
+   - `observe`: veri toplar, çökmelere not düşer, raporu yazar. Kod
+     değişikliği, yayın, store metni değişikliği ve yorum cevabı yapmaz.
+   - `fix-to-testing` (varsayılan): ayrıca verilerle kanıtlanmış sorunları
+     düzeltir ve YALNIZCA test kanallarına yayınlar (`./release.sh mobile
+     all internal`). Production'a terfi, ASO metni değişikliği ve 1-2
+     yıldızlı yorumlara cevap hazırlanır ve kullanıcı onayına listelenir.
+   - `full-auto`: ayrıca terfi eder, ASO metnini değiştirir ve her yoruma
+     cevap verir, ama yalnızca Bölüm 18.5'teki kapılardan geçerek. Bölüm
+     18.8'deki kesin sınırlar her seviyede geçerlidir.
+3. Zamanlama ve güvenlik:
+   - Rutin YEREL bir zamanlanmış görev olarak çalışır (ör. Claude masaüstü
+     zamanlanmış görevleri), çünkü derleme ve yayın yerel araçlara,
+     simülatörlere ve anahtarlara ihtiyaç duyar. Bulut rutini yalnızca
+     `observe` için kullanılabilir.
+   - Ayarlar `ops/config.json` dosyasındadır (store, Firebase ve analitik
+     kimlikleri, otonomi, eşikler, bildirim kanalı). Rutin talimatı
+     (şablon: `DAILY_OPS.template.md`) yalnızca karar mantığını içerir;
+     içine kimlik ya da dosya yolu gömülmez.
+   - Bir kilit dosyası (`ops/.lock`, başlangıç zamanıyla) çakışan
+     çalışmaları önler; 6 saatten eski bir kilit bayat sayılır ve raporlanır.
+   - Çalışma alanı temiz değilse başka bir oturum çalışıyor olabilir:
+     yalnızca veri toplanır ve raporlanır; kod değişikliği, commit ya da
+     yayın yapılmaz.
+   - Ortak cihazlara saygı gösterilir: başka bir rutinin açtığı emülatör ya
+     da simülatör asla kapatılmaz.
+4. Önce veri:
+   - Veri toplama deterministiktir (JSON üreten script, CLI ya da MCP
+     çağrıları); yorum ondan sonra gelir. Rapordaki her iddia bir sayıya ve
+     kaynağına dayanır; genel tavsiye yasaktır.
+   - Kaynaklar: Crashlytics (platform ve sürüm bazında fatal, non-fatal ve
+     ANR), Google Play Android vitals (Play Developer Reporting API:
+     kullanıcının algıladığı çökme ve ANR oranları), App Store Connect
+     teşhisleri, analitik hunileri (Bölüm 14), iki mağazanın yorum ve
+     puanları, ASO sıraları.
+   - Robot trafiği ayıklanır: inceleme günündeki Apple cihazları, Play
+     ön-lansman ve Test Lab cihazları, emülatörler. Gerçek kullanıcılar ayrı
+     sayılır; 30 gerçek kullanıcının altında oran ya da huni yorumlanmaz.
+   - Günlük metrikler `ops/metrics.jsonl` dosyasına eklenir (her gün bir
+     JSON satırı), böylece trendler karşılaştırılabilir kalır; Proje
+     Merkezi'nin Operasyon sekmesi bu dosyayı okur.
+5. Yayın kapıları (her seviyede):
+   - Yayın yalnızca kullanıcıyı etkileyen, verilerle kanıtlanmış bir
+     düzeltme ya da ölçülebilir bir iyileştirme için yapılır; günde en
+     fazla bir yayın; kozmetik değişiklik, refactor ya da doküman için asla.
+   - Yayından önce kod değişiklikleri en az iki bağımsız subagent tarafından
+     çürütülmeye çalışılarak incelenir (doğruluk/regresyon, platform/i18n);
+     `flutter analyze` ve `flutter test` geçmeli, hatayı yeniden üreten bir
+     test eklenmelidir.
+   - Build'ler önce test kanallarına gider. Production'a terfi için o
+     build'de yeni bir çökme kümesi olmadan geçen bir bekleme süresi gerekir
+     (varsayılan 24 saat, `ops/config.json` içinde ayarlanır).
+   - Production kademelidir: Play `PLAY_ROLLOUT` oranıyla başlar (varsayılan
+     %20), `./release.sh rollout 0.5` ve sonra `1` ile genişletilir; iOS 7
+     günlük kademeli yayını (phased release) kullanır.
+   - Otomatik durdurma: yeni sürümün çökmesiz kullanıcı oranı Bölüm
+     18.6'daki SLO'nun altına düşerse ya da bir regresyon çıkarsa hemen
+     `./release.sh halt` çalıştırılır, raporlanır ve ileriye doğru düzeltilir.
+6. Çökme yönetimi (en önemli adım):
+   - SLO: platform başına çökmesiz kullanıcı ≥ %99,5; Play'de kullanıcının
+     algıladığı çökme oranı < %1,09 ve ANR oranı < %0,47 (Bölüm 11.6).
+   - Regresyonlar (kapatılmış bir sorunun yeni sürümde geri gelmesi) önce
+     ele alınır.
+   - İncelenen her soruna Crashlytics'te günde bir not düşülür ("İncelendi
+     <tarih> (günlük operasyon): <kök neden> → <aksiyon>"); tekrar olmasın
+     diye önce mevcut notlar listelenir.
+   - Gerçek kullanıcıyı etkileyen çökmeler otonomi seviyesi içinde aynı gün
+     düzeltilir. Düzeltme yayına girince soruna "<sürüm>'de çözüldü, commit
+     <hash>" notu eklenir ve sorun kapatılır.
+7. Yorumlar:
+   - Cevaplar yorumun dilinde yazılır: kısa, sakin ve teşekkür eden.
+     Yayınlanmamış bir şeyi asla vaat etmez, kişisel veri istemez,
+     tartışmaya girmez. Bir yoruma yalnızca bir kez cevap verilir.
+   - Bildirilen bir hata yeniden üretilir ve gerçekse Bölüm 18.6'daki akışla
+     düzeltilir.
+   - 1-2 yıldızlı yorumlara cevaplar yalnızca `full-auto` seviyesinde
+     otomatik yayınlanır; diğer seviyelerde taslak olarak hazırlanıp
+     kullanıcıya listelenir.
+   - Gönderilen her cevap rapora yazılır.
+8. Kesin sınırlar (hiçbir seviyede otomatik yapılmaz; kullanıcıya listelenir):
+   - fiyatlar, abonelikler ve uygulama içi ürünler; store hesabı, ödeme,
+     vergi ve kullanıcı ya da izin ayarları;
+   - gizlilik beyanları (Play Veri güvenliği, App Privacy) ve dolayısıyla
+     yeni bir veri türü toplayan her değişiklik;
+   - imzalama anahtarları, sertifikalar ve keystore'lar; CI'ın sabitlediği
+     araç sürümü yükseltmeleri; `git push --force`; özellik kaldırma;
+     kimlik bilgisi girme.
+9. ASO denemeleri (Bölüm 11):
+   - Haftada bir alan ve bir dil grubu, böylece etki ölçülebilir.
+   - Referans değer değişiklikten önceki 7 günün ortalaması, sonuç ise
+     sonraki 7 günün ortalamasıdır; ikisi de `docs/ASO.md`'deki deneme
+     günlüğüne yazılır.
+   - Ekran görüntüsü ve ikon denemeleri doğrudan değiştirmek yerine Apple
+     Product Page Optimization ve Play store listing experiments ile yapılır.
+10. Haftalık değerlendirme (pazartesi): 28 günlük veri, bu hafta ile geçen
+   hafta karşılaştırması, en fazla beş aksiyon (neden = hangi sayı, ölçüm =
+   hangi olay, hangi dosya), geçen haftanın aksiyonlarının kontrolü, eksik
+   loglama listesi, ASO trendi ve rakip taraması; `docs/ops/weekly-YYYY-MM-DD.md`
+   dosyasına yazılır.
+11. Raporlama:
+   - Günlük rapor `docs/ops/daily/YYYY-MM-DD.md`, sabit bölümlerle: Özet,
+     Rakamlar (son 7 gün ve önceki 7 gün), Çökmeler, Yorumlar, ASO,
+     Geliştirme, Yayın, Kullanıcıdan beklenenler, Yarın.
+   - Üç satırlık bir özet bildirim olarak gönderilir (masaüstü ya da
+     telefon bildirimi veya bağlı bir Slack kanalı), böylece sahibi dosya
+     açmadan görür.
+   - Yalnızca kullanıcının yapabileceği her iş, raporda bir satır olarak
+     kalmaz; İhtiyaç Merkezi kaydı olur (Bölüm 16.6).
+   - Yayın olmayan günlerde store build'i tetikleyecek hiçbir şey push'lanmaz
+     (CI mobil uygulamayı derliyorsa `[ci skip]` kullanılır).
+12. Maliyet: sakin günler (yeni çökme, yorum ya da yayın yok) tek ajanla
+   biter. Çok ajanlı çalışma yalnızca kök neden analizi, kod incelemesi ve
+   haftalık değerlendirme için kullanılır; rapor hangi modun kullanıldığını
+   yazar.

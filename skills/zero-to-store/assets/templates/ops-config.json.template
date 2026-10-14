@@ -1,0 +1,18 @@
+{
+  "project": "{{PROJECT_NAME}}",
+  "autonomy": "fix-to-testing",
+  "schedule": "daily 09:00 local time",
+  "reportLanguage": "en",
+  "soakHours": 24,
+  "slo": { "crashFreeUsersPct": 99.5, "playCrashRatePct": 1.09, "playAnrRatePct": 0.47 },
+  "minHumansForRatios": 30,
+  "firebaseProject": "your-firebase-project-id",
+  "ga4PropertyId": "000000000",
+  "android": { "package": "{{BUNDLE_ID}}", "firebaseAppId": "1:000000000000:android:0000000000000000" },
+  "ios": { "bundleId": "{{BUNDLE_ID}}", "appStoreId": "0000000000", "firebaseAppId": "1:000000000000:ios:0000000000000000" },
+  "aso": {
+    "countries": ["us", "tr"],
+    "keywords": { "en-US": ["meal planner", "recipe app"], "tr": ["yemek planlayıcı"] }
+  },
+  "notify": { "channel": "push" }
+}

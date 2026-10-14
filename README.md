@@ -36,6 +36,10 @@ watch everything live in a local **Project Hub**.
 - **Never the wrong account.** Store accounts are confirmed once. Claude stops
   and asks when a console shows several accounts, and releases abort if the API
   keys belong to another account.
+- **It keeps working after launch.** An optional daily routine watches
+  crashes, Play vitals, reviews and ASO ranks. It fixes data-proven problems,
+  ships them to the test tracks first and halts a staged rollout on a crash
+  spike. You follow it in the Project Hub's Operations tab.
 - **You always know what's going on.** The Project Hub shows the roadmap live
   and lists exactly what Claude needs from you, with step-by-step instructions
   to find each item.
@@ -93,12 +97,15 @@ Other ways to install:
 6. **Release.** `./release.sh mobile all internal` → test →
    `./release.sh mobile all promote`. Web and admin deploy by tag:
    `./release.sh web`.
+7. **Operate (optional).** A local daily routine checks stability, reviews
+   and ASO, writes a report and sends a short summary. Its autonomy level
+   is your choice; the default ships fixes only to the test tracks.
 
 ## What's inside
 
 | Part | What it does |
 |---|---|
-| `skills/zero-to-store/references/rules.md` | 17-section rule set (English; `rules.tr.md` Turkish, kept in sync by CI) |
+| `skills/zero-to-store/references/rules.md` | 18-section rule set (English; `rules.tr.md` Turkish, kept in sync by CI) |
 | `assets/repo/` | Monorepo skeleton: `release.sh`, release scripts, CI on changed apps, tag-triggered deploys, pnpm workspace |
 | `assets/project-hub/` | Dependency-free local web app: live roadmap + Needs Center (EN/TR UI) |
 | `assets/store-screenshots/` | Flutter capture per locale × device + framed renders at exact store sizes |
@@ -113,6 +120,7 @@ Other ways to install:
 | `./release.sh mobile all promote` | The same tested build goes to production (staged on Play, App Store review) |
 | `./release.sh web` / `./release.sh panel` | Tag `web/vX.Y.Z` → CI deploys and attaches `dist.zip` |
 | `./release.sh changes mobile` | Commits, file summary and notes between the last two versions |
+| `./release.sh rollout 0.5` / `./release.sh halt` | Widen the Play staged rollout, or halt it and pause the iOS phased release |
 
 ## Requirements
 

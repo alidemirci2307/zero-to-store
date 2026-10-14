@@ -31,12 +31,12 @@ roadmap + Needs Center) shows the user everything.
 .claude-plugin/marketplace.json   single-repo marketplace, plugin "source": "./"
 commands/kickoff.md               /zero-to-store:kickoff (routes EN/TR, passes $ARGUMENTS)
 skills/zero-to-store/SKILL.md     entry point; portable frontmatter only (name, description, license, metadata)
-  references/rules.md | rules.tr.md     17-section rule set, EN + TR, structurally identical
+  references/rules.md | rules.tr.md     18-section rule set, EN + TR, structurally identical (18 = post-launch operations)
   assets/repo/                    monorepo skeleton copied into user projects (release.sh, scripts/release/, workflows, pnpm, gitignore/gitattributes without dot)
-  assets/project-hub/             server.mjs + lib/{needs,plan}.mjs + public/ (vanilla JS, i18n.js EN/TR) + README.md + examples/needs/*.json
+  assets/project-hub/             server.mjs + lib/{needs,plan,ops}.mjs + public/ (vanilla JS, i18n.js EN/TR; tabs Plan / Needs / Operations) + README.md + examples/needs/*.json
   assets/store-screenshots/       capture.sh (flutter drive) + render.mjs/frame.css (headless Chrome) + Dart templates + config
   assets/templates/               Fastfile, fastlane-store-helpers.rb, Gemfile, testers.txt, beta_review_info.json, htaccess-spa, CHANGELOG
-  assets/templates/*.template.md + tr/   CLAUDE/PLAN/PHASE/TODO in EN and TR
+  assets/templates/*.template.md + tr/   CLAUDE/PLAN/PHASE/TODO/DAILY_OPS in EN and TR; ops-config.json.template
 scripts/validate.sh               all checks (run before every commit)
 scripts/check-parity.mjs          EN/TR structure check (rules, templates, README)
 scripts/release.sh                release THIS repo (bump, changelog, tag vX.Y.Z, push)
@@ -62,6 +62,7 @@ install.sh                        manual install (non-plugin)
 | Store screenshots fully automated per locale (capture → framed render → fastlane folders); `fastlane check_metadata` validates limits/policy per locale before release | "Everything automatic", ASO quality |
 | Tools are dependency-free (Node built-ins, bash, Ruby/fastlane); every file ≤ 300 lines | The rule set's own constraint; easy to install |
 | SKILL.md frontmatter limited to spec-portable keys | Works in Claude Code, skills.sh and claude.ai uploads |
+| Post-launch operations (Section 18) are an optional module with autonomy levels `observe` / `fix-to-testing` (default) / `full-auto`. Fixes go to the test tracks first; promotion needs a soak period; production is staged (Play rollout, iOS phased release); `./release.sh halt` on a crash spike. Project IDs live in `ops/config.json`, not in the routine prompt. It runs as a LOCAL scheduled task | Inspired by a friend's real daily-ops routine (kept: data-first, robot filtering, release discipline, hard limits, weekly review; added: staged gates, auto-halt, SLO, lock file, notifications, Needs Center for owner-only work). Not credited by name: the maintainer hasn't confirmed the friend wants that |
 | Version only in plugin.json (+ mirrored in SKILL.md `metadata.version` + top CHANGELOG entry; validate.sh enforces equality) | Users get updates only when plugin.json version changes |
 
 ## 4. How to change things
@@ -82,7 +83,14 @@ install.sh                        manual install (non-plugin)
   styles via CSSOM or classes.
 - **Fastlane:** `fastlane/helpers/store.rb` (template) has the pure logic.
   Fastfile lanes: `check_notes`, `check_metadata`, `verify_accounts`,
-  `android|ios release`, `android|ios promote`. The Turkish words in
+  `android|ios release`, `android|ios promote`, `android rollout|halt`,
+  `ios phased`. The Fastfile is at 294/300 lines: move logic into the
+  helper before adding more.
+- **Operations data:** the daily routine writes `ops/metrics.jsonl` in the
+  format documented in `assets/project-hub/README.md`, and the hub reads it.
+  Change the format, `lib/ops.mjs`, `public/ops.js` and the DAILY_OPS
+  templates together. Chart colors (blue/orange, slots 1-2 of the dataviz
+  reference palette) were validated for both themes on the hub surfaces. The Turkish words in
   PROMO_WORDS are intentional (they detect Turkish promo terms).
 - Commits: Conventional Commits, English. Add user-visible changes under
   `## [Unreleased]` in CHANGELOG.md.
@@ -101,6 +109,12 @@ install.sh                        manual install (non-plugin)
   `node hub/server.mjs`. Check it in the browser pane or capture with headless
   Chrome (`--force-dark-mode --virtual-time-budget=6000`). Deep links:
   `#/plan/7`, `#/needs/<id>`, `?lang=en|tr`.
+- **Operations tab:** put `ops/config.json` (from the template), a generated
+  `ops/metrics.jsonl` (21 days, including a regression and its fix) and
+  `docs/ops/daily/*.md` + `docs/ops/weekly-*.md` into the demo project, then
+  open `#/ops` in EN/TR and light/dark. Hover the charts, click a weekly
+  report and check that `--status` prints the OPS line. This was done for
+  v1.1.
 - **release.sh (user projects):** build a throwaway monorepo with a local bare
   remote whose path contains `github.com`. Put a fake `bundle` (logs args,
   creates fake AAB/IPA, `exit 0`) and a fake `gh` (logs to `$GH_LOG`) on
@@ -193,6 +207,14 @@ turning on auto-update.
       unless managed settings set `"syncClaudeAiSkills": false`.
 - [ ] Next versions: `./scripts/release.sh patch|minor|major` (fully automated
   now).
+- [ ] **v1.1 (post-launch operations) is implemented and validated in
+  [Unreleased], but not released yet.** Release with
+  `./scripts/release.sh minor` when the maintainer says so.
+  - Live store calls (rollout/halt/phased) are unverified, like the other
+    store lanes. API names were checked in the fastlane 2.238 source.
+  - Planned for v1.2: the data scripts the DAILY_OPS template looks for in
+    `ops/scripts/`: store reviews + replies, Play vitals (Reporting API),
+    GA4, ASO ranks.
 - [ ] Maintainer (manual, no API): upload `docs/images/banner.png` under
   Settings → General → Social preview.
 - [ ] Deferred by the maintainer: dogfood the skill end to end on a small real

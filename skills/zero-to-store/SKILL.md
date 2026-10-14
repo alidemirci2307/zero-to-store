@@ -26,7 +26,7 @@ project language (CLAUDE.md, docs/, PLAN, Needs Center records).
 
 ## Single source of rules
 
-All rules live in the chosen rules file (17 sections). The FIRST action when
+All rules live in the chosen rules file (18 sections). The FIRST action when
 this skill triggers is to read it end to end. This summary never replaces it;
 if they conflict, the rules file wins. References look like "Section N.M".
 
@@ -72,15 +72,21 @@ if they conflict, the rules file wins. References look like "Section N.M".
      17.3.4).
 7. **Release.** Use the root `./release.sh`. Every release is an annotated
    tag `<app>/vX.Y.Z` plus a GitHub Release backup (Sections 12, 15).
+8. **Operate (optional, after the first production release).** If the user
+   enabled post-launch operations (Section 18), write `ops/config.json` (from
+   `ops-config.json.template`) and `docs/OPS.md`, then help the user create a
+   LOCAL scheduled task from `DAILY_OPS.template.md` (EN or `tr/`). The
+   default autonomy is `fix-to-testing`: fixes go to the test tracks only,
+   production stays staged (`./release.sh rollout`, `./release.sh halt`).
 
 ## Assets
 
 | Path | Goes to | Purpose |
 |---|---|---|
 | `assets/repo/` | project root | Monorepo skeleton: `release.sh` (single entry), `scripts/release/` (mobile/web release, version diff), `.github/workflows/` (CI on changed apps, tag-triggered deploys, Supabase keep-alive), pnpm workspace, `.gitignore`/`.gitattributes` |
-| `assets/project-hub/` | `hub/` | Dependency-free local web app (Node 18+). **Plan**: live roadmap from PLAN.md + phase files. **Needs Center**: step-by-step "where to find it" + submit form; values go only to `hub/inbox/` (never committed). Guide: its `README.md` |
+| `assets/project-hub/` | `hub/` | Dependency-free local web app (Node 18+). **Plan**: live roadmap from PLAN.md + phase files. **Needs Center**: step-by-step "where to find it" + submit form; values go only to `hub/inbox/` (never committed). **Operations**: SLO tiles, crash-free and rating trends, ASO ranks and daily reports from `ops/`. Guide: its `README.md` |
 | `assets/store-screenshots/` | `apps/mobile/tool/store_screenshots/` | Captures raw screens per language × device in DEMO_MODE and renders modern framed store images at exact store sizes into fastlane folders (Node + Chrome) |
-| `assets/templates/` (`tr/` for Turkish) | various | `CLAUDE`, `PLAN`, `PHASE`, `TODO`, `CHANGELOG` templates |
+| `assets/templates/` (`tr/` for Turkish) | various | `CLAUDE`, `PLAN`, `PHASE`, `TODO`, `CHANGELOG` templates; `DAILY_OPS` (post-launch routine prompt) + `ops-config.json.template` → `ops/config.json` |
 | `assets/templates/Fastfile.template` + `fastlane-store-helpers.rb.template` | `apps/mobile/fastlane/` | Play internal + closed testing, TestFlight "testers" group, promote (same build to production), metadata/ASO validation for every locale, wrong-account guard |
 | `assets/templates/` other | as named | `Gemfile`, `testers.txt`, `beta_review_info.json`, `htaccess-spa` |
 

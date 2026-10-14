@@ -9,6 +9,8 @@
 # Standalone lanes:
 #   fastlane check_notes version:x.y.z   fastlane check_metadata strict:true|false
 #   fastlane verify_accounts platform:android|ios|all
+#   fastlane android rollout fraction:0.5 · fastlane android halt · fastlane ios phased action:pause|resume|complete
+#   (or from the repo root: ./release.sh rollout|halt|resume-ios — RULES.md Section 18.5)
 #
 # Credential files (committed because the repo is private — RULES.md Section 12.5):
 #   fastlane/keys/play-service-account.json, fastlane/keys/AuthKey_<ID>.p8,
@@ -164,6 +166,27 @@ platform :android do
                 rollout: staged ? PLAY_ROLLOUT.to_s : nil)
     UI.success("Android #{version} (#{code}) #{PLAY_TEST_TRACK} -> production #{staged ? "#{(PLAY_ROLLOUT * 100).round}% staged" : 'full'}")
   end
+
+  # Staged-rollout control (RULES.md Section 18.5). A halted release can only be resumed in Play Console.
+  desc "Change the production rollout: fastlane android rollout fraction:0.5 (1 = everyone)"
+  lane :rollout do |opts|
+    fraction = opts[:fraction].to_f
+    UI.user_error!("fraction must be > 0 and <= 1") unless fraction.positive? && fraction <= 1
+    upload_to_play_store(package_name: APP_IDENTIFIER, json_key: PLAY_JSON_KEY, track: "production",
+                         rollout: fraction.to_s, skip_upload_aab: true, skip_upload_metadata: true,
+                         skip_upload_changelogs: true, skip_upload_images: true, skip_upload_screenshots: true)
+    UI.success("Android production rollout -> #{(fraction * 100).round}%")
+  end
+
+  desc "Halt the production rollout (crash spike): fastlane android halt fraction:<current>"
+  lane :halt do |opts|
+    fraction = (opts[:fraction] || PLAY_ROLLOUT).to_f
+    upload_to_play_store(package_name: APP_IDENTIFIER, json_key: PLAY_JSON_KEY, track: "production",
+                         release_status: "halted", rollout: fraction.to_s, skip_upload_aab: true,
+                         skip_upload_metadata: true, skip_upload_changelogs: true,
+                         skip_upload_images: true, skip_upload_screenshots: true)
+    UI.important("Android production rollout HALTED. Resume or replace it in Play Console after the fix.")
+  end
 end
 
 platform :ios do
@@ -211,6 +234,7 @@ platform :ios do
       screenshots_path: File.join(ROOT, "fastlane/screenshots"), overwrite_screenshots: true,
       submit_for_review: true, automatic_release: false, # release manually after approval (Section 12.1)
       run_precheck_before_submit: true, precheck_include_in_app_purchases: false,
+      phased_release: true, # 7-day phased release; pause with `fastlane ios phased action:pause`
       force: true # skip the HTML preview confirmation — single command, non-interactive
     )
   end
@@ -253,5 +277,18 @@ platform :ios do
     _, version, code, notes = release_context(opts)
     submit_app_store(asc_api_key, version, code, notes)
     UI.success("iOS #{version} (#{code}) TestFlight build -> submitted for App Store review.")
+  end
+
+  desc "Control the live version's phased release: fastlane ios phased action:pause|resume|complete"
+  lane :phased do |opts|
+    action = opts[:action].to_s
+    UI.user_error!("action: pause|resume|complete") unless %w[pause resume complete].include?(action)
+    asc_api_key
+    app = Spaceship::ConnectAPI::App.find(APP_IDENTIFIER) || UI.user_error!("#{APP_IDENTIFIER} not found")
+    version = app.get_live_app_store_version(platform: Spaceship::ConnectAPI::Platform::IOS)
+    phased = version&.fetch_app_store_version_phased_release
+    UI.user_error!("The live version has no phased release") unless phased
+    phased.public_send(action)
+    UI.success("iOS #{version.version_string} phased release -> #{action}")
   end
 end

@@ -35,6 +35,11 @@ bir standarttır. Her şeyi yerel **Proje Merkezi**'nden canlı izlersin.
 - **Asla yanlış hesap yok.** Store hesapları bir kez kesinleştirilir. Konsolda
   birden fazla hesap görünürse Claude durup sorar; API anahtarları başka bir
   hesaba aitse release iptal olur.
+- **Yayından sonra da çalışır.** İsteğe bağlı günlük bir rutin çökmeleri,
+  Play vitals verilerini, yorumları ve ASO sıralarını izler. Verilerle
+  kanıtlanmış sorunları düzeltir, önce test kanallarına çıkarır ve çökme
+  artışında kademeli yayını durdurur. Hepsini Proje Merkezi'nin Operasyon
+  sekmesinden izlersin.
 - **Ne olduğunu hep bilirsin.** Proje Merkezi yol haritasını canlı gösterir ve
   Claude'un senden tam olarak neye ihtiyacı olduğunu, her birini nereden
   bulacağını adım adım listeler.
@@ -92,12 +97,16 @@ Diğer kurulum yolları:
 6. **Release.** `./release.sh mobile all internal` → test →
    `./release.sh mobile all promote`. Web ve panel tag ile deploy edilir:
    `./release.sh web`.
+7. **Operasyon (isteğe bağlı).** Yerel bir günlük rutin kararlılığı,
+   yorumları ve ASO'yu kontrol eder, rapor yazar ve kısa bir özet gönderir.
+   Otonomi seviyesini sen seçersin; varsayılan, düzeltmeleri yalnızca test
+   kanallarına çıkarır.
 
 ## İçinde neler var
 
 | Parça | Ne yapar |
 |---|---|
-| `skills/zero-to-store/references/rules.md` | 17 bölümlük kural seti (İngilizce; `rules.tr.md` Türkçe, CI ile senkron tutulur) |
+| `skills/zero-to-store/references/rules.md` | 18 bölümlük kural seti (İngilizce; `rules.tr.md` Türkçe, CI ile senkron tutulur) |
 | `assets/repo/` | Monorepo iskeleti: `release.sh`, release scriptleri, değişen uygulamaya göre CI, tag ile deploy, pnpm workspace |
 | `assets/project-hub/` | Bağımlılıksız yerel web uygulaması: canlı yol haritası + İhtiyaç Merkezi (EN/TR arayüz) |
 | `assets/store-screenshots/` | Her dil × cihaz için Flutter çekimi + store boyutlarında çerçeveli görseller |
@@ -112,6 +121,7 @@ Diğer kurulum yolları:
 | `./release.sh mobile all promote` | Test edilen aynı build production'a çıkar (Play'de kademeli, App Store incelemesi) |
 | `./release.sh web` / `./release.sh panel` | `web/vX.Y.Z` tag'i → CI deploy eder ve `dist.zip` ekler |
 | `./release.sh changes mobile` | Son iki sürüm arasındaki commit'ler, dosya özeti ve notlar |
+| `./release.sh rollout 0.5` / `./release.sh halt` | Play'deki kademeli yayını genişletir ya da durdurur ve iOS kademeli yayınını duraklatır |
 
 ## Gereksinimler
 

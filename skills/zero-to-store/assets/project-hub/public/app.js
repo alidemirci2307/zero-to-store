@@ -4,6 +4,7 @@ import { toast, store } from "./format.js";
 import { t, lang, setLang, applyStatic } from "./i18n.js";
 import { createNeedsView, isOpenNeed } from "./needs.js";
 import { createPlanView } from "./plan.js";
+import { createOpsView } from "./ops.js";
 
 const TOKEN = document.querySelector('meta[name="hub-token"]').content;
 const POLL_MS = 4000;
@@ -21,9 +22,10 @@ async function api(url, opts = {}) {
 const navigate = (hash) => { if (location.hash !== hash) location.hash = hash; else route(); };
 const needsView = createNeedsView({ api, refresh });
 const planView = createPlanView({ navigate });
+const opsView = createOpsView({ api });
 
 function parseRoute() {
-  const [, view = "plan", id] = location.hash.match(/^#\/(plan|needs)(?:\/([^/]+))?/) ?? [];
+  const [, view = "plan", id] = location.hash.match(/^#\/(plan|needs|ops)(?:\/([^/]+))?/) ?? [];
   return { view, id: id && decodeURIComponent(id) };
 }
 
@@ -44,6 +46,7 @@ function route() {
   if (view !== currentView) {
     $("view-plan").hidden = view !== "plan";
     $("view-needs").hidden = view !== "needs";
+    $("view-ops").hidden = view !== "ops";
     currentView = view;
     window.scrollTo({ top: 0 });
   }
@@ -51,6 +54,7 @@ function route() {
   if (view === "plan" && id) planView.showPhase(id);
   else planView.hidePhase();
   if (view === "needs" && id) needsView.focus(id);
+  if (view === "ops") opsView.showReport(id);
 }
 
 async function refresh() {
@@ -67,6 +71,7 @@ async function refresh() {
     $("needs-badge").textContent = String(open);
     planView.render(data.plan, data.needs);
     needsView.render(data.needs, data.plan.phases ?? []);
+    if (data.ops) opsView.render(data.ops);
     if (first) route();
     else if (parseRoute().view === "plan" && parseRoute().id) planView.showPhase(parseRoute().id);
     movePill();

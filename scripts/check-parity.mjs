@@ -11,7 +11,7 @@ const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..")
 const SKILL = "skills/zero-to-store";
 const PAIRS = process.argv.length > 3 ? [[process.argv[2], process.argv[3]]] : [
   [`${SKILL}/references/rules.md`, `${SKILL}/references/rules.tr.md`],
-  ...["CLAUDE", "PLAN", "PHASE", "TODO"].map((n) => [`${SKILL}/assets/templates/${n}.template.md`, `${SKILL}/assets/templates/tr/${n}.template.md`]),
+  ...["CLAUDE", "PLAN", "PHASE", "TODO", "DAILY_OPS"].map((n) => [`${SKILL}/assets/templates/${n}.template.md`, `${SKILL}/assets/templates/tr/${n}.template.md`]),
   ["README.md", "README.tr.md"],
 ];
 

@@ -15,6 +15,7 @@ import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 import { createNeeds, readJson, ID_RE } from "./lib/needs.mjs";
 import { createPlan } from "./lib/plan.mjs";
+import { createOps } from "./lib/ops.mjs";
 
 const HUB = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.dirname(HUB);
@@ -27,6 +28,7 @@ const CSP = "default-src 'self'; img-src 'self' data:; style-src 'self'; script-
 
 const needs = createNeeds({ hub: HUB, root: ROOT });
 const plan = createPlan({ root: ROOT });
+const ops = createOps({ root: ROOT });
 const LOCK = path.join(needs.inbox, ".server.json");
 const project = () => readJson(path.join(HUB, "config.json"), {}).project ?? path.basename(ROOT);
 
@@ -56,7 +58,12 @@ async function handle(req, res, port) {
   if (pathname.startsWith("/api/")) {
     if (req.headers["x-hub-token"] !== TOKEN) return json(res, 401, { error: "Session renewed — reload the page" });
     if (req.method === "GET" && pathname === "/api/state") {
-      return json(res, 200, { project: project(), needs: needs.load(), plan: plan.load() });
+      return json(res, 200, { project: project(), needs: needs.load(), plan: plan.load(), ops: ops.load() });
+    }
+    const r = pathname.match(/^\/api\/ops\/report\/([^/]+)$/);
+    if (req.method === "GET" && r && ops.REPORT_ID_RE.test(r[1])) {
+      const markdown = ops.report(r[1]);
+      return markdown == null ? json(res, 404, { error: "Report not found" }) : json(res, 200, { id: r[1], markdown });
     }
     const m = pathname.match(/^\/api\/needs\/([^/]+)$/);
     if (req.method === "POST" && m && ID_RE.test(m[1])) {
@@ -119,6 +126,11 @@ function printStatus() {
     }
   }
   console.log(`\nNEEDS: ${items.filter((i) => i.status === "processed").length} / ${items.length} done`);
+  const o = ops.load();
+  if (o.enabled || o.metrics.length) {
+    const last = o.metrics.at(-1);
+    console.log(`OPS: autonomy ${o.autonomy ?? "?"} · ${o.metrics.length} days of metrics (last ${last?.date ?? "—"}) · ${o.reports.length} reports${o.locked ? " · LOCKED (ops/.lock)" : ""}${o.skippedLines ? ` · ${o.skippedLines} unreadable metrics lines` : ""}`);
+  }
   let bad = 0;
   const phaseNos = new Set(p.phases.map((f) => String(parseInt(f.no, 10))));
   for (const i of items) {

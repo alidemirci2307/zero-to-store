@@ -242,13 +242,13 @@ turning on auto-update.
   Claude may ask questions between phases (Sections 17.7–17.8). Default
   "no questions": CLAUDE.md and `docs/DECISIONS.md` note that all
   questions are asked at the start, during planning. Release + CI green.
-- [ ] **Unreleased** (CHANGELOG `[Unreleased]`): "approve and walk away".
+- [x] **v1.2.2 released** (2026-11-01, patch): "approve and walk away".
   Decisions on the way (Section 17.12: best practice, never alone on
   money, legal, irreversible or account steps, every decision reported);
   plan review before approval (17.11, phase template "Decisions already
   made"); in "no questions" mode the store accounts and the Claude Design
   canvas are approved in the approval round and the user gets a "before
-  you leave" list. Release when the maintainer says so.
+  you leave" list. Release + CI green; zip 227 KB.
 - [ ] Maintainer (manual, no API): upload `docs/images/banner.png` under
   Settings → General → Social preview.
 - [ ] Deferred by the maintainer: dogfood the skill end to end on a small real

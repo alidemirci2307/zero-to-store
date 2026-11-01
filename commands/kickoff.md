@@ -28,7 +28,9 @@ Apply the zero-to-store skill:
       (Sections 15.4, 15.10)
    5) Research, then ONE approval round: name and package name, ASO
       keywords, ad/push plans and SEO keywords when relevant, and the phase
-      plan with its dependency graph, parallel groups and time estimates
+      plan with its dependency graph, parallel groups and time estimates,
+      with every decision a phase could raise already settled (Section
+      17.11); with "no questions" also the store accounts and the design
    6) Write PLAN.md + docs/plan/phase-XX files; do everything you can do
       yourself (CLI, MCP, Chrome MCP — Section 16.7) and open only the rest
       as Needs Center records; commit
@@ -36,7 +38,8 @@ Apply the zero-to-store skill:
       user's approval before the UI phases (Section 3.6). Implement the
       phases with Sonnet subagents, parallel groups at the same time.
       Ask questions between phases only if the user chose that in the
-      interview; otherwise none except the two gates of Section 17.7
+      interview; otherwise never ask after the approval: decide with best
+      practices and report every decision (Section 17.12)
 
 Do not write a single line of project code until CLAUDE.md has been created.
 

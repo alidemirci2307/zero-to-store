@@ -138,7 +138,9 @@
      applies the comments until the user approves. UI phases start only
      after approval; backend, infrastructure, CI/CD, release and store
      setup phases run meanwhile (Section 17.7). The artifact links and the
-     approval date go to `docs/design/DESIGN.md`.
+     approval date go to `docs/design/DESIGN.md`. With "no questions"
+     (Section 17.7), the design is made during the kickoff and approved in
+     the approval round, so nothing waits for the user later.
    - Handoff: the approved tokens become the single theme source (Flutter
      theme tokens, the Tailwind config of the panel and web) and every
      screen is built to match its artboard. Store screenshots (Section
@@ -901,7 +903,12 @@
      Which one should I release from?" The answer is compared with the entry
      in `docs/RELEASE.md`; if they do not match, it stops again. This is a
      DELIBERATE EXCEPTION to the "no questions between phases" rule in
-     Section 17.7.
+     Section 17.7. In "no questions" mode the accounts are confirmed in the
+     approval round, and that confirmation is the user's explicit
+     instruction: later Claude works only in the account whose IDs match
+     the record exactly. If that account is not signed in or anything is
+     unclear, all store work stops and becomes a Needs Center entry while
+     the other work continues.
    - Even if only one account is visible, the active account is verified
      before every console operation: on Play, the developer ID in the URL
      and the developer name on the page, and on App Store Connect the team
@@ -1364,12 +1371,14 @@
       15.10)
    5) Research, then ONE approval round: name and package name, ASO
       keywords, ad and push plans, SEO keywords (each only if relevant)
-      and the phase plan with its dependency graph (Section 17.8)
+      and the phase plan with its dependency graph (Section 17.8); with
+      "no questions" also the store accounts and the Claude Design canvas
+      (Section 17.7)
    6) Write the approved plan as the PLAN.md index + docs/plan/phase-XX
       files; do what Claude can do itself and open the rest as Needs
       Center entries (Sections 16.6–16.7); commit (Section 17.3.3)
-   7) Start the work — with Claude Design, the design and its approval
-      gate come first (Section 3.6)
+   7) Start the work — with Claude Design, UI phases start only after the
+      design approval (Section 3.6)
    This order guarantees that the rules persist even if the session is cut
    short early. Not a single line of project code is written before
    CLAUDE.md is created.
@@ -1498,7 +1507,10 @@
      taken into account).
    - The number of entries added to TODO.md / the Needs Center in this
      phase, and, if there are pending needs, a reminder with their link.
-   The summary does not exceed 5-8 lines; the detail is kept in PLAN.md's
+   - The decisions Claude made on its own in this phase, one line each
+     (details in docs/DECISIONS.md, Section 17.12).
+   The summary does not exceed 5-8 lines plus one line per decision; the
+   detail is kept in PLAN.md's
    statistics block. When the plan is approved, an initial duration
    estimate is written for each phase; the actual duration is added next
    to it so that estimate quality improves over time.
@@ -1509,7 +1521,8 @@
      CLAUDE.md and TODO.md (not the phase files — only the file of the
      phase being worked on is opened); the user is given a summary of
      "these phases are done, the next one is this, estimated remaining
-     time is this", and work resumes from where it left off. CLAUDE.md
+     time is this, these are the decisions I made since you last looked",
+     and work resumes from where it left off. CLAUDE.md
      contains an explicit reference to PLAN.md.
    - Clarity of division of work: PLAN.md is the main roadmap; work that
      arises outside the plan or is postponed goes to TODO.md (Section 16.5);
@@ -1562,14 +1575,17 @@
 7. Questions at phase transitions follow the choice made in the kickoff
    interview (Section 17.8), which is written to CLAUDE.md and
    docs/DECISIONS.md:
-   - "No questions" (the default and the recommended option): there is no
-     stopping for approval or questions between phases; the plan is
-     executed UNINTERRUPTED to the END. The note reads "No questions
+   - "No questions" (the default and the recommended option): once the
+     user approves the plan, Claude never asks again, so the plan is made
+     complete from the start (Section 17.11). The note reads "No questions
      between phases: all questions are asked at the start, during
-     planning", so Claude moves every foreseeable preference decision into
-     the approval round. Aesthetic or preference decisions that still come
-     up are made by the rules of this document and reported to the user at
-     the end of the work.
+     planning". Everything that needs the user is pulled into the approval
+     round, including the store accounts (Section 12.8) and, with Claude
+     Design, the design approval (Section 3.6). Before the user leaves,
+     Claude lists what only they can do, so nothing blocks later (signing
+     in to the CLIs and consoles Claude will use, payments, verifications).
+     The plan then runs UNINTERRUPTED to the END; whatever comes up on the
+     way is decided by Claude and reported (Section 17.12).
    - "Ask at phase transitions": when a phase or parallel group ends, after
      integration and review, Claude may ask about the preference decisions
      that came up (scope, UX, wording) in one batch with the question tool.
@@ -1581,10 +1597,12 @@
    faked; the need is written to the Needs Center (Section 16.6), the task
    is linked in TODO.md, and work continues with tasks that do not require
    the tool/information. The user is asked only if the ENTIRE project is
-   blocked, and the situation is explained with its reasoning. Two gates
-   always apply: account ambiguity in a store console stops the work for a
-   question (Section 12.8), and with Claude Design the UI phases wait for
-   the design approval while the other phases continue (Section 3.6).
+   blocked, and the situation is explained with its reasoning. Two safety
+   gates stay in both modes: no store work on an uncertain account
+   (Section 12.8) and no UI code before the design approval with Claude
+   Design (Section 3.6). In "no questions" mode both are settled in the
+   approval round; if one still comes up, only the affected work waits, as
+   a Needs Center entry, and the rest continues.
 8. Kickoff decisions, asked with the method of Section 17.9 (answers go to
    `docs/PRODUCT.md`, decisions to `docs/DECISIONS.md`, both referenced
    from CLAUDE.md):
@@ -1614,7 +1632,9 @@
      package name candidates with the uniqueness check (Sections 8.4,
      11.1); ASO keywords; the ad placement plan (only with ads — Section
      8.5); the push strategy (only with push — Section 9.5); SEO keywords
-     (only with a website — Section 10.4); the phase plan (Section 17.2).
+     (only with a website — Section 10.4); the phase plan (Section 17.2);
+     with "no questions" also the store accounts Claude read from the
+     consoles and the Claude Design canvas (Section 17.7).
    - Publishing accounts are settled through the `store-accounts` entry,
      which Claude fills from the consoles when it can (Section 12.8).
    - Never asked: what the user already said; the mandatory parts
@@ -1662,7 +1682,30 @@
    every language (Sections 11, 12); App Review notes (how to reach every
    feature and how to test premium); and, with Claude Design, the design
    phase and its approval gate (Section 3.6). A plan missing one of these
-   is incomplete and is fixed before it is presented.
+   is incomplete and is fixed before it is presented. Before presenting
+   it, Claude walks through every phase and settles each decision the
+   phase could raise: decided in the phase file with its reason
+   ("Decisions already made"), or put into the approval round. A plan that
+   would need questions later is not complete.
+12. Decisions on the way (every mode): when something comes up that the
+   plan did not settle, Claude decides itself instead of waiting:
+   - How: the option that follows this rule set and the approved plan and
+     design comes first; then official platform, store and library
+     guidance; then the option that is easiest to undo and safest for user
+     data and store review; then consistency with earlier entries in
+     docs/DECISIONS.md; then the simplest option that meets the need.
+   - Never alone: spending money, legal texts and privacy declarations,
+     anything irreversible (deleting production or user data, publishing
+     to production, changing the package name) and account or payment
+     settings. Claude takes the free, reversible path, keeps working and
+     opens a Needs Center entry for the user's later decision (not a chat
+     question).
+   - Reported: each decision is written at once to docs/DECISIONS.md
+     (date, phase, decision, reason with its rule or source, alternatives,
+     how to undo it). Every phase summary lists that phase's decisions in
+     one line each (Section 17.3.4), the end-of-work report lists them
+     all, and the next session starts with the decisions made since the
+     user last looked.
 
 ## 18. Post-launch Operations (MANDATORY when enabled)
 

@@ -24,8 +24,9 @@ watch everything live in a local **Project Hub**.
 - **A real kickoff interview.** `/zero-to-store:kickoff <your idea>`. Claude
   asks the critical questions in a few adaptive rounds, each with a
   recommended best-practice answer, and skips whatever your earlier answers
-  ruled out. Then it works through the whole plan without stopping, or
-  checks in with you between phases if you prefer.
+  ruled out. Approve the plan and walk away: Claude works through it without
+  stopping, makes best-practice calls on its own and reports every one. If
+  you prefer, it checks in with you between phases instead.
 - **Your stack, your call.** Supabase Cloud, self-hosted Supabase on your own
   server, Firebase or no backend at all; Hostinger, Firebase Hosting,
   Cloudflare Pages or your own server. Firebase Analytics and Crashlytics are

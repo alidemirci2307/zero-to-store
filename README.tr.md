@@ -24,8 +24,9 @@ bir standarttır. Her şeyi yerel **Proje Merkezi**'nden canlı izlersin.
 - **Gerçek bir başlangıç görüşmesi.** `/zero-to-store:kickoff <fikrin>`.
   Claude kritik soruları birkaç uyarlanan turda, her birinde önerilen en iyi
   pratik cevapla sorar ve önceki cevaplarının gereksiz kıldığı soruları
-  atlar. Sonra planın tamamını durmadan uygular; istersen fazlar arasında
-  sana danışır.
+  atlar. Planı onaylayıp gidebilirsin: Claude planı durmadan uygular, yolda
+  çıkan kararları en iyi pratiğe göre kendisi verir ve her birini bildirir.
+  İstersen bunun yerine fazlar arasında sana danışır.
 - **Yığın senin seçimin.** Supabase Cloud, kendi sunucunda self-hosted
   Supabase, Firebase ya da hiç backend olmadan; Hostinger, Firebase Hosting,
   Cloudflare Pages ya da kendi sunucun. Firebase Analytics ve Crashlytics her

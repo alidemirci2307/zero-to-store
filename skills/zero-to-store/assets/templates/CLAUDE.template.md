@@ -11,7 +11,8 @@
 ## 0. Session Start Procedure
 1. Read this file.
 2. Read the `PLAN.md` index; summarize for the user the finished phases, the
-   next phase, and the estimated remaining time. Open only the file of the
+   next phase, the estimated remaining time and the decisions Claude made on
+   its own since the last session (`docs/DECISIONS.md`). Open only the file of the
    phase being worked on.
 3. Read `TODO.md`; remind the user of pending items in priority order.
 4. Start the Project Hub (`node hub/server.mjs`, in the background) and run
@@ -57,6 +58,7 @@ Read the relevant section before doing any work. Summary reminder:
 - Monetization as chosen: AdMob ads hidden for premium, IAP via RevenueCat, a policy-safe paywall (RULES Section 3.9)
 - UI follows the approved design exactly (`docs/design/DESIGN.md`)
 - Phases run via subagents (Sonnet), independent ones in PARALLEL; questions between phases: {{PHASE_QUESTIONS}} (`none` = all questions are asked at the start, during planning — RULES Section 17.7)
+- Decisions on the way: Claude decides with best practices, never alone on money, legal or irreversible steps, and logs each one in `docs/DECISIONS.md` (RULES Section 17.12)
 - Claude does it first (CLI, MCP, Chrome — RULES Section 16.7); only the rest goes to the Needs Center (hub/needs/); never ask for keys in chat
 - Store operations only on the CORRECT account listed in docs/RELEASE.md; with multiple accounts, ASK first (Section 12.8)
 - Store texts/visuals in EVERY supported language; run `fastlane check_metadata` before release

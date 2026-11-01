@@ -6,7 +6,10 @@ The version in `.claude-plugin/plugin.json` is what users receive on update — 
 
 ## [Unreleased]
 ### Added
+- Decisions on the way (rules Section 17.12, EN + TR): when something comes up that the plan did not settle, Claude decides with best practices instead of waiting. It never decides alone on money, legal texts, irreversible steps or account settings; it takes the free, reversible path and opens a Needs Center entry instead. Every decision is reported in `docs/DECISIONS.md`, the phase summary, the end-of-work report and the next session start.
+- Plan review before approval (Section 17.11): every decision a phase could raise is settled in the phase file (new "Decisions already made" line in the phase template) or asked in the approval round.
 ### Changed
+- "No questions" mode (Section 17.7) is fully hands-off after the plan is approved: the store accounts and the Claude Design canvas are approved in the approval round, and Claude lists the user-only steps (sign-ins, payments, verifications) before the user leaves. If an account or design issue still comes up, only the affected work waits in the Needs Center and the rest continues.
 ### Fixed
 ### Removed
 

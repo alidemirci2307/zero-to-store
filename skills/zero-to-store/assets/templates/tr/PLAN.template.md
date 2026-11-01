@@ -32,4 +32,4 @@ birlikte yürür ve her arayüz fazı onun onayına bağlıdır. -->
 
 ## Faz Tamamlanma Günlüğü
 <!-- Her satır "- " ile başlar. Örnek:
-- [x] P01 — 2026-09-01 10:00 → 12:10 (2s10d; subagent 1s40d, denetim 30d). TODO +1, ihtiyaç +0 -->
+- [x] P01 — 2026-09-01 10:00 → 12:10 (2s10d; subagent 1s40d, denetim 30d). TODO +1, ihtiyaç +0, karar +2 -->

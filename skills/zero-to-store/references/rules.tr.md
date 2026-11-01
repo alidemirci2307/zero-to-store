@@ -134,7 +134,9 @@
      Claude yorumları kullanıcı onaylayana kadar uygular. Arayüz fazları
      ancak onaydan sonra başlar; backend, altyapı, CI/CD, release ve store
      kurulum fazları bu sırada ilerler (Bölüm 17.7). Artifact linkleri ve
-     onay tarihi `docs/design/DESIGN.md`'ye yazılır.
+     onay tarihi `docs/design/DESIGN.md`'ye yazılır. "Soru sorulmasın"
+     seçildiyse (Bölüm 17.7) tasarım başlangıçta yapılır ve onay turunda
+     onaylanır; böylece sonra hiçbir şey kullanıcıyı beklemez.
    - Aktarım: onaylanan token'lar tek tema kaynağı olur (Flutter tema
      token'ları, panel ve web'in Tailwind ayarı) ve her ekran kendi
      artboard'una birebir uyacak şekilde kodlanır. Store görselleri
@@ -873,7 +875,12 @@
      YAPMADAN DURUR ve sohbette açıkça sorar: "Şu hesaplar açık: …
      Hangisinden yayınlayayım?" Cevap `docs/RELEASE.md`'deki kayıtla
      karşılaştırılır; uyuşmazsa yine durulur. Bu, Bölüm 17.7'deki "fazlar
-     arası soru sorulmaz" kuralının BİLİNÇLİ İSTİSNASIDIR.
+     arası soru sorulmaz" kuralının BİLİNÇLİ İSTİSNASIDIR. "Soru
+     sorulmasın" modunda hesaplar onay turunda onaylanır ve bu onay
+     kullanıcının açık talimatıdır: sonrasında Claude yalnızca ID'leri
+     kayıtla birebir eşleşen hesapta çalışır. O hesap açık değilse ya da
+     herhangi bir belirsizlik varsa tüm store işleri durur ve İhtiyaç
+     Merkezi kaydına dönüşür; diğer işler devam eder.
    - Tek hesap görünse bile, her konsol işleminden önce aktif hesap
      doğrulanır: Play'de URL'deki geliştirici ID'si ve sayfadaki
      geliştirici adı, App Store Connect'te takım adı kayıtla eşleşmelidir.
@@ -1320,13 +1327,14 @@
       `assets/repo/`) ve GitHub private reposunu bağla (Bölüm 15.10)
    5) Araştır, sonra TEK onay turu: ad ve paket adı, ASO kelimeleri,
       reklam ve push planları, SEO kelimeleri (her biri yalnızca ilgiliyse)
-      ve bağımlılık grafiğiyle faz planı (Bölüm 17.8)
+      ve bağımlılık grafiğiyle faz planı (Bölüm 17.8); "soru sorulmasın"
+      modunda store hesapları ve Claude Design canvas'ı da (Bölüm 17.7)
    6) Onaylanan planı PLAN.md indeksi + docs/plan/phase-XX dosyaları
       olarak yaz; Claude'un kendisinin yapabildiklerini yap, kalanı
       İhtiyaç Merkezi kaydı olarak aç (Bölüm 16.6–16.7); commit'le (Bölüm
       17.3.3)
-   7) İşe başla — Claude Design seçildiyse önce tasarım ve onay kapısı
-      gelir (Bölüm 3.6)
+   7) İşe başla — Claude Design seçildiyse arayüz fazları ancak tasarım
+      onayından sonra başlar (Bölüm 3.6)
    Bu sıra, session erken kesilse bile kuralların kalıcı olmasını garanti
    eder. CLAUDE.md oluşturulmadan tek satır proje kodu yazılmaz.
 0.1. Araç (MCP/CLI) kontrolü ZORUNLUDUR: yığın seçildikten sonra,
@@ -1442,7 +1450,10 @@
      kaba tahmini (paralel çalışan gruplar dikkate alınır).
    - Bu fazda TODO.md'ye / İhtiyaç Merkezi'ne eklenen kayıt sayısı ve
      bekleyen ihtiyaç varsa linkiyle hatırlatma.
-   Özet 5-8 satırı geçmez; detay PLAN.md'nin istatistik bloğunda tutulur.
+   - Claude'un bu fazda kendi verdiği kararlar, her biri tek satır
+     (ayrıntısı docs/DECISIONS.md'de, Bölüm 17.12).
+   Özet, karar başına bir satır dışında 5-8 satırı geçmez; detay
+   PLAN.md'nin istatistik bloğunda tutulur.
    Plan onaylanırken her faza başlangıç süre tahmini yazılır; gerçekleşen
    süre bunun yanına eklenir ki tahmin kalitesi zamanla iyileşsin.
    - Plan değişirse (faz eklendi/bölündü/kapsam değişti) PLAN.md
@@ -1451,7 +1462,8 @@
    - HER session başında CLAUDE.md ve TODO.md ile birlikte PLAN.md
      indeksi OKUNUR (faz dosyaları değil — yalnızca çalışılacak fazın
      dosyası açılır); kullanıcıya "şu fazlar bitti, sıradaki şu, kalan
-     tahmini süre şu" özeti verilir ve kalınan yerden devam edilir.
+     tahmini süre şu, son baktığından beri verdiğim kararlar şunlar"
+     özeti verilir ve kalınan yerden devam edilir.
      CLAUDE.md'de PLAN.md'ye açık referans bulunur.
    - İş bölümü netliği: PLAN.md ana yol haritasıdır; plan dışında
      ortaya çıkan/ertelenen işler TODO.md'ye gider (Bölüm 16.5);
@@ -1499,13 +1511,17 @@
 7. Faz geçişlerinde soru sorulup sorulmayacağı başlangıç görüşmesindeki
    seçime uyar (Bölüm 17.8); seçim CLAUDE.md'ye ve docs/DECISIONS.md'ye
    yazılır:
-   - "Soru sorulmasın" (varsayılan ve önerilen): fazlar arasında onay ya
-     da soru için durulmaz; plan SONUNA KADAR kesintisiz uygulanır. Not
-     şöyle düşülür: "Fazlar arası soru yok: tüm sorular en başta,
-     planlama sırasında sorulur." Bu yüzden Claude öngörülebilen her
-     tercih kararını onay turuna taşır. Yine de ortaya çıkan estetik ya da
-     tercihe dayalı kararlar bu dokümandaki kurallara göre verilir ve iş
-     sonunda bana raporlanır.
+   - "Soru sorulmasın" (varsayılan ve önerilen): kullanıcı planı
+     onayladıktan sonra Claude bir daha soru sormaz; bu yüzden plan en
+     baştan eksiksiz yapılır (Bölüm 17.11). Not şöyle düşülür: "Fazlar
+     arası soru yok: tüm sorular en başta, planlama sırasında sorulur."
+     Kullanıcıya gereken her şey onay turuna alınır; store hesapları
+     (Bölüm 12.8) ve Claude Design seçildiyse tasarım onayı (Bölüm 3.6)
+     dahil. Kullanıcı ayrılmadan önce Claude yalnızca onun yapabileceği
+     işleri listeler, böylece sonra hiçbir şey takılmaz (Claude'un
+     kullanacağı CLI'lara ve konsollara giriş, ödemeler, doğrulamalar).
+     Plan sonra SONUNA KADAR kesintisiz yürür; yolda çıkan her şeye Claude
+     kendisi karar verir ve bildirir (Bölüm 17.12).
    - "Faz geçişlerinde sorulsun": bir faz ya da paralel grup bittiğinde,
      entegrasyon ve denetimden sonra Claude ortaya çıkan tercih
      kararlarını (kapsam, kullanıcı deneyimi, metinler) soru aracıyla tek
@@ -1517,10 +1533,12 @@
    durumlar) o iş atlanmaz, uydurulmaz; ihtiyaç İhtiyaç Merkezi'ne yazılır
    (Bölüm 16.6), iş TODO.md'ye bağlanır ve araç/bilgi gerektirmeyen
    işlerle devam edilir. Yalnızca projenin TAMAMI bloklandıysa bana
-   sorulur ve durum gerekçesiyle açıklanır. İki kapı her zaman geçerlidir:
-   store konsolundaki hesap belirsizliği işi durdurur ve soru sorulur
-   (Bölüm 12.8); Claude Design seçildiyse arayüz fazları tasarım onayını
-   bekler, diğer fazlar devam eder (Bölüm 3.6).
+   sorulur ve durum gerekçesiyle açıklanır. İki güvenlik kapısı iki modda
+   da kalır: belirsiz bir hesapta store işi yapılmaz (Bölüm 12.8) ve
+   Claude Design seçildiyse tasarım onayından önce arayüz kodu yazılmaz
+   (Bölüm 3.6). "Soru sorulmasın" modunda ikisi de onay turunda netleşir;
+   yine de biri ortaya çıkarsa yalnızca etkilenen iş İhtiyaç Merkezi
+   kaydı olarak bekler, gerisi devam eder.
 8. Başlangıç kararları, Bölüm 17.9'daki yöntemle sorulur (cevaplar
    `docs/PRODUCT.md`'ye, kararlar `docs/DECISIONS.md`'ye yazılır; ikisi de
    CLAUDE.md'den referanslanır):
@@ -1550,7 +1568,8 @@
      11.1); ASO kelimeleri; reklam yerleşim planı (yalnızca reklam varsa —
      Bölüm 8.5); push stratejisi (yalnızca push varsa — Bölüm 9.5); SEO
      kelimeleri (yalnızca web sitesi varsa — Bölüm 10.4); faz planı (Bölüm
-     17.2).
+     17.2); "soru sorulmasın" modunda ayrıca Claude'un konsollardan
+     okuduğu store hesapları ve Claude Design canvas'ı (Bölüm 17.7).
    - Yayın hesapları `store-accounts` kaydıyla netleşir; Claude
      yapabildiğinde bu kaydı konsollardan kendisi doldurur (Bölüm 12.8).
    - Asla sorulmaz: kullanıcının zaten söyledikleri; zorunlu parçalar
@@ -1598,7 +1617,28 @@
    Review notları (her özelliğe nasıl ulaşılır, premium nasıl test
    edilir); ve Claude Design seçildiyse tasarım fazı ve onay kapısı (Bölüm
    3.6). Bunlardan biri eksik olan plan eksiktir ve sunulmadan önce
-   düzeltilir.
+   düzeltilir. Plan sunulmadan önce Claude her fazı tek tek gözden geçirir
+   ve fazın doğurabileceği her kararı netleştirir: ya gerekçesiyle faz
+   dosyasına yazar ("Önceden verilen kararlar") ya da onay turuna taşır.
+   Sonradan soru gerektirecek bir plan eksiktir.
+12. Yoldaki kararlar (her modda): planın netleştirmediği bir şey çıktığında
+   Claude beklemek yerine kendisi karar verir:
+   - Nasıl: önce bu kural setine ve onaylanan plan ile tasarıma uyan
+     seçenek; sonra resmi platform, store ve kütüphane rehberleri; sonra
+     geri alması en kolay, kullanıcı verisi ve store incelemesi için en
+     güvenli seçenek; sonra docs/DECISIONS.md'deki önceki kararlarla
+     tutarlılık; sonra ihtiyacı karşılayan en basit seçenek.
+   - Asla tek başına değil: para harcamak, yasal metinler ve gizlilik
+     beyanları, geri alınamayan her şey (production ya da kullanıcı
+     verisini silmek, production'a yayınlamak, paket adını değiştirmek)
+     ve hesap ya da ödeme ayarları. Claude ücretsiz ve geri alınabilir
+     yolu seçer, çalışmaya devam eder ve kullanıcının sonraki kararı için
+     bir İhtiyaç Merkezi kaydı açar (sohbette soru değil).
+   - Bildirilir: her karar hemen docs/DECISIONS.md'ye yazılır (tarih,
+     faz, karar, kuralı ya da kaynağıyla gerekçe, alternatifler, nasıl
+     geri alınacağı). Her faz özeti o fazın kararlarını tek satırda
+     listeler (Bölüm 17.3.4), iş sonu raporu hepsini listeler ve sonraki
+     session, kullanıcının son baktığından beri verilen kararlarla başlar.
 
 ## 18. Yayın Sonrası Operasyon (AÇIKSA KESİN)
 

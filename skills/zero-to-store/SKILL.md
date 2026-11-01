@@ -72,7 +72,10 @@ if they conflict, the rules file wins. References look like "Section N.M".
    11.1); ASO keywords; the ad placement plan, push plan and SEO keywords
    only when relevant; detailed phases (Sections 17.3, 17.3.1, 17.11) with a
    dependency graph, PARALLEL GROUPS (Section 17.4.1) and a time estimate
-   per phase.
+   per phase. Settle every decision a phase could raise before presenting
+   the plan (Section 17.11). With "no questions", the store accounts and the
+   Claude Design canvas are approved in this round too, and you list what
+   only the user can do before they leave (Section 17.7).
 7. **Write the plan, then do it yourself first.** Write `PLAN.md` (from
    `PLAN.template.md`) and one `docs/plan/phase-XX-<slug>.md` per phase (from
    `PHASE.template.md`). Then handle the external setup yourself (Section
@@ -91,12 +94,15 @@ if they conflict, the rules file wins. References look like "Section N.M".
 8. **Design** (Claude Design, Section 3.6): write `docs/design/BRIEF.md`
    from `DESIGN_BRIEF.template.md`, create the Design System and the Design
    canvas with the Artifact tool, and wait for the user's approval before
-   any UI phase. Non-UI phases run in the meantime.
+   any UI phase. Non-UI phases run in the meantime. With "no questions",
+   this happens before the approval round of step 6.
 9. **Build.** Run phases with Sonnet subagents. Phases in the same parallel
    group run AT THE SAME TIME; each group ends with integration + review.
-   Ask between phases only if the user chose that in the interview;
-   otherwise go to the end without stopping, except at the two gates of
-   Section 17.7 (the note in CLAUDE.md says which mode applies).
+   Ask between phases only if the user chose that in the interview (the
+   note in CLAUDE.md says which mode applies). Otherwise never ask after
+   the approval: decide what comes up yourself with best practices, never
+   alone on money, legal or irreversible steps (Section 17.12), write each
+   decision to `docs/DECISIONS.md` and list it in the phase summary.
    - Tick phase done criteria as work progresses (the hub shows it live).
    - After each phase: update PLAN.md, process submitted needs
      (`node hub/server.mjs --status`) and give a short status (Section

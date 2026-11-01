@@ -11,7 +11,8 @@
 ## 0. Session Başlangıç Prosedürü
 1. Bu dosyayı oku.
 2. `PLAN.md` indeksini oku; biten fazları, sıradaki fazı, tahmini kalan
-   süreyi kullanıcıya özetle. Yalnızca çalışılacak fazın dosyasını aç.
+   süreyi ve son session'dan beri Claude'un kendi verdiği kararları
+   (`docs/DECISIONS.md`) kullanıcıya özetle. Yalnızca çalışılacak fazın dosyasını aç.
 3. `TODO.md`'yi oku; bekleyen işleri öncelik sırasıyla hatırlat.
 4. Proje Merkezi'ni başlat (`node hub/server.mjs`, arka planda) ve
    `node hub/server.mjs --status` çalıştır; gönderilmiş ihtiyaçları
@@ -56,6 +57,7 @@ Herhangi bir iş yapmadan önce ilgili bölümünü oku. Özet hatırlatma:
 - Gelir modeli seçildiği gibi: AdMob reklamları premium'a gösterilmez, IAP RevenueCat, politikaya uygun paywall (RULES Bölüm 3.9)
 - Arayüz onaylanan tasarıma birebir uyar (`docs/design/DESIGN.md`)
 - Fazlar subagent (Sonnet) ile, bağımsızlar PARALEL; fazlar arası soru: {{FAZ_ARASI_SORU}} (`yok` = tüm sorular en başta, planlama sırasında sorulur — RULES Bölüm 17.7)
+- Yoldaki kararlar: Claude en iyi pratiğe göre kendisi karar verir; para, yasal ya da geri alınamaz adımlarda asla tek başına değil; her kararı `docs/DECISIONS.md`'ye yazar (RULES Bölüm 17.12)
 - Önce Claude yapar (CLI, MCP, Chrome — RULES Bölüm 16.7); yalnızca kalanı İhtiyaç Merkezi'ne (hub/needs/); sohbetten key istenmez
 - Store işlemi yalnızca docs/RELEASE.md'deki DOĞRU hesapta; çoklu hesapta önce SOR (Bölüm 12.8)
 - Store metinleri/görselleri desteklenen HER dilde; release öncesi `fastlane check_metadata`

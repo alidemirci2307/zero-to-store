@@ -29,6 +29,7 @@
 - **Bildirim:** payload route + tıklama hedefi / yok
 - **RLS/güvenlik:** etkilenen tablolar / yok
 - **Admin panel senkronu:** gereken panel ekranı / yok
+- **Önceden verilen kararlar:** bu fazın yeniden açmayacağı seçimler ve gerekçeleri (RULES Bölüm 17.11) / yok
 - **Tasarım:** bu fazın uyguladığı artboard'lar (`docs/design/DESIGN.md`) / yok
 - **Kullanıcıdan gerekenler:** İhtiyaç Merkezi kayıt id'leri (`phases` alanında bu faz) / yok
 - **Docs güncellemesi:** faz sonunda güncellenecek docs/ dosyaları

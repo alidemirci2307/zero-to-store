@@ -32,4 +32,4 @@ P01, and every UI phase depends on its approval. -->
 
 ## Phase Completion Log
 <!-- Each line starts with "- ". Example:
-- [x] P01 — 2026-09-01 10:00 → 12:10 (2h10m; subagent 1h40m, audit 30m). TODO +1, needs +0 -->
+- [x] P01 — 2026-09-01 10:00 → 12:10 (2h10m; subagent 1h40m, audit 30m). TODO +1, needs +0, decisions +2 -->

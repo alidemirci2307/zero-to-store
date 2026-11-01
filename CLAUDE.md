@@ -58,8 +58,8 @@ install.sh                        manual install (non-plugin)
 | Every tag → GitHub Release (mobile: AAB/IPA; web/panel: dist.zip from CI) | Binary backup of what shipped |
 | Web/panel deploy on **tag**, not on every main push; main push runs CI only; rollback = re-run deploy workflow with an old tag | Versioned, reversible deploys |
 | Mobile: `internal` (Play internal + closed testing "testers", TestFlight external group "testers" auto-created) → `promote` (same build to production, no rebuild) → `production` only for hotfix | Build once, promote |
-| Store account safety: `store-accounts` need record first (Claude fills it from the consoles, the user confirms). Claude stops and asks if a console shows multiple accounts (one of the two gates of rules Section 17.7). `fastlane verify_accounts` aborts release if keys belong to another account | Wrong-account publishing is irreversible |
-| Kickoff = adaptive interview (Sections 17.8–17.9): ≤4 rounds via AskUserQuestion, the best-practice option first and marked Recommended, never asking what the user said or ruled out; then ONE approval round. Round 4 asks whether Claude may ask questions between phases: "no questions" (default) is noted as "all questions are asked at the start, during planning"; "ask at phase transitions" batches questions after each phase or group. Two gates always apply: store-account ambiguity and the design approval | Maintainer (2026-11-01): ask the critical questions in the right place with best-practice defaults; no web → no web questions |
+| Store account safety: `store-accounts` need record first (Claude fills it from the consoles, the user confirms). Claude stops and asks if a console shows multiple accounts (one of the two gates of rules Section 17.7). In "no questions" mode the accounts are confirmed in the approval round; afterwards Claude works only in the account whose IDs match exactly, otherwise store work parks in the Needs Center. `fastlane verify_accounts` aborts release if keys belong to another account | Wrong-account publishing is irreversible |
+| Kickoff = adaptive interview (Sections 17.8–17.9): ≤4 rounds via AskUserQuestion, the best-practice option first and marked Recommended, never asking what the user said or ruled out; then ONE approval round. Round 4 asks whether Claude may ask questions between phases: "no questions" (default) is noted as "all questions are asked at the start, during planning"; "ask at phase transitions" batches questions after each phase or group. With "no questions" the user approves everything once (plan, store accounts, Claude Design canvas) and can walk away; what comes up later is decided by Claude under Section 17.12 and reported. The two safety gates (account, design) stay in both modes | Maintainer (2026-11-01): ask the critical questions in the right place with best-practice defaults; no web → no web questions; after approving the plan the user may leave, so the plan must be complete and every later decision reported |
 | Backend is a kickoff choice. The rules stay written for Supabase, and Section 13.11 maps each term to self-hosted Supabase, Firebase, no backend or the user's own API | Users may not want Supabase or want it on their own VPS. One rule text plus a mapping keeps EN/TR parity and context cost manageable, instead of parallel rule sets |
 | Claude Design = the "Design" and "Design System" artifact types that Claude Code creates with its Artifact tool (the standalone claude.ai/design site closes 2026-12-14; never send users there). The design approval gates UI phases only; non-UI phases continue | Design before code with the user's approval, without blocking backend/release work |
 | Claude does it first (Section 16.7): CLI → MCP → Chrome MCP, one batched confirmation for anything that changes the user's accounts. Secrets move via download or clipboard (`pbpaste`) into `hub/inbox/`, never through the chat or screenshots. User-only: sign-in, passwords/2FA, account creation, payments, verification, CAPTCHAs, typing secrets into third-party forms. Records Claude completed get `processedBy: "claude"` (hub badge) | Maintainer: Claude left solvable needs to the user. The user-only list mirrors Claude's own browser-safety limits, so the skill never asks Claude for something it would refuse |
@@ -238,11 +238,17 @@ turning on auto-update.
   - Not verified live: a full kickoff run with the new interview, Design
     artifact creation from a user project, and the Chrome clipboard flow
     (`pbpaste` after a console Copy button).
-- [ ] **Unreleased** (CHANGELOG `[Unreleased]`): the kickoff asks whether
+- [x] **v1.2.1 released** (2026-11-01, patch): the kickoff asks whether
   Claude may ask questions between phases (Sections 17.7–17.8). Default
   "no questions": CLAUDE.md and `docs/DECISIONS.md` note that all
-  questions are asked at the start, during planning. Release it as a patch
-  when the maintainer says so.
+  questions are asked at the start, during planning. Release + CI green.
+- [ ] **Unreleased** (CHANGELOG `[Unreleased]`): "approve and walk away".
+  Decisions on the way (Section 17.12: best practice, never alone on
+  money, legal, irreversible or account steps, every decision reported);
+  plan review before approval (17.11, phase template "Decisions already
+  made"); in "no questions" mode the store accounts and the Claude Design
+  canvas are approved in the approval round and the user gets a "before
+  you leave" list. Release when the maintainer says so.
 - [ ] Maintainer (manual, no API): upload `docs/images/banner.png` under
   Settings → General → Social preview.
 - [ ] Deferred by the maintainer: dogfood the skill end to end on a small real

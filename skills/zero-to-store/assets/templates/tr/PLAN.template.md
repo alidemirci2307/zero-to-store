@@ -15,6 +15,8 @@ P01 (altyapı) ─┬─> P02 auth ──┐
                └─> P05 landing
 ```
 Paralel gruplar: G1 = {P01} · G2 = {P02, P03, P04, P05} · G3 = {P06, P07} ...
+<!-- Claude Design seçildiyse (RULES Bölüm 3.6): tasarım fazı G1'de P01 ile
+birlikte yürür ve her arayüz fazı onun onayına bağlıdır. -->
 
 ## Faz İndeksi
 | # | Faz | Durum | Bağlı | Grup | Tahmin | Başlangıç | Bitiş | Süre | Dosya |

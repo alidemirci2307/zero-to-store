@@ -13,17 +13,26 @@
 <p align="center"><b>English</b> · <a href="README.tr.md">Türkçe</a></p>
 
 **zero-to-store** is a Claude Code plugin that takes a mobile app idea all the
-way to the App Store and Google Play. Claude plans the product in phases,
-builds a Flutter app, a React admin panel, a Supabase backend and a landing
-page in parallel, and ships it with fully automated, multi-language store
-releases. The rule set behind it is opinionated and production-grade. You
+way to the App Store and Google Play. Claude interviews you about the
+product, plans it in phases, designs it with you in Claude Design, builds a
+Flutter app with the backend, admin panel and website you chose in parallel,
+and ships it with fully automated, multi-language store releases. The rule set behind it is opinionated and production-grade. You
 watch everything live in a local **Project Hub**.
 
 ## Why
 
-- **One command to kickoff.** `/zero-to-store:kickoff <your idea>`. Claude asks
-  every question up front once, then works through the whole plan without
-  stopping.
+- **A real kickoff interview.** `/zero-to-store:kickoff <your idea>`. Claude
+  asks the critical questions in a few adaptive rounds, each with a
+  recommended best-practice answer, and skips whatever your earlier answers
+  ruled out. Then it works through the whole plan without stopping.
+- **Your stack, your call.** Supabase Cloud, self-hosted Supabase on your own
+  server, Firebase or no backend at all; Hostinger, Firebase Hosting,
+  Cloudflare Pages or your own server. Firebase Analytics and Crashlytics are
+  always in.
+- **Designed before it's coded.** With Claude Design, every screen is
+  designed in Claude for you to review and approve: a rich animated
+  onboarding, a store-compliant paywall, ad placements, every state, light
+  and dark.
 - **Rules that ship apps.** Clean Architecture, 300-line file limit, i18n from
   day one, offline states, force update, account deletion, ATT + UMP consent,
   privacy manifests and store data-safety answers.
@@ -40,9 +49,13 @@ watch everything live in a local **Project Hub**.
   crashes, Play vitals, reviews and ASO ranks. It fixes data-proven problems,
   ships them to the test tracks first and halts a staged rollout on a crash
   spike. You follow it in the Project Hub's Operations tab.
-- **You always know what's going on.** The Project Hub shows the roadmap live
-  and lists exactly what Claude needs from you, with step-by-step instructions
-  to find each item.
+- **Claude does the legwork.** Console setup runs through CLIs, MCPs and your
+  signed-in browser. Keys go from a download or the clipboard straight into a
+  local inbox, never through the chat. Only what truly needs you (a sign-in,
+  a payment, a verification) lands in the Needs Center.
+- **You always know what's going on.** The Project Hub shows the roadmap live,
+  lists what Claude needs from you with step-by-step instructions, and marks
+  what Claude has already done for you.
 
 ## Screenshots
 
@@ -81,23 +94,29 @@ Other ways to install:
 
 ## How it works
 
-1. **Skeleton.** A monorepo (`apps/mobile`, `apps/panel`, `apps/web`, shared
-   `supabase/`), CLAUDE.md, the rules and the Project Hub are created and
-   committed, and a private GitHub repo is connected.
-2. **Tool check.** Supabase MCP, Firebase CLI, Chrome MCP and RevenueCat MCP are
-   checked; anything missing is requested.
-3. **All questions at once.** Web presence, languages, ad and push strategy,
-   ASO/SEO keywords, and app/package name candidates checked in both stores.
-   Secrets are never asked in chat; they go through the Needs Center.
-4. **Plan.** Detailed phases with a dependency graph and parallel groups.
-   Every foreseeable external need is opened in the Needs Center right away.
-5. **Build.** Phases run on parallel subagents. Each group ends with
+1. **Memory first.** CLAUDE.md, the rules, TODO.md and the Project Hub are
+   created and committed before anything else.
+2. **Kickoff interview.** Platforms, backend, web, monetization, languages,
+   audience, design approach and v1 scope, asked in adaptive rounds with
+   recommended answers. Secrets are never asked in chat.
+3. **Skeleton and tools.** A monorepo with only the apps you chose, a private
+   GitHub repo and a check of the tools your stack needs.
+4. **Plan.** An ASO-researched app name and package name (unique in both
+   stores), keywords, ad and push plans, and detailed phases with a
+   dependency graph and parallel groups, approved in one round.
+5. **Claude does it first.** Firebase, the store consoles, AdMob, RevenueCat
+   and GitHub secrets are set up through CLIs, MCPs and Chrome. Only what
+   truly needs you goes to the Needs Center.
+6. **Design.** With Claude Design, a design system and every screen are
+   created in Claude. UI work starts after your approval; backend and release
+   work go on in the meantime.
+7. **Build.** Phases run on parallel subagents. Each group ends with
    integration and a rule audit, and progress shows up live in the Project
    Hub.
-6. **Release.** `./release.sh mobile all internal` → test →
+8. **Release.** `./release.sh mobile all internal` → test →
    `./release.sh mobile all promote`. Web and admin deploy by tag:
    `./release.sh web`.
-7. **Operate (optional).** A local daily routine checks stability, reviews
+9. **Operate (optional).** A local daily routine checks stability, reviews
    and ASO, writes a report and sends a short summary. Its autonomy level
    is your choice; the default ships fixes only to the test tracks.
 
@@ -109,7 +128,7 @@ Other ways to install:
 | `assets/repo/` | Monorepo skeleton: `release.sh`, release scripts, CI on changed apps, tag-triggered deploys, pnpm workspace |
 | `assets/project-hub/` | Dependency-free local web app: live roadmap + Needs Center (EN/TR UI) |
 | `assets/store-screenshots/` | Flutter capture per locale × device + framed renders at exact store sizes |
-| `assets/templates/` | Fastfile with metadata/ASO validation, CLAUDE/PLAN/PHASE/TODO templates (EN + TR) |
+| `assets/templates/` | Fastfile with metadata/ASO validation, CLAUDE/PLAN/PHASE/TODO, Claude Design brief and daily-ops templates (EN + TR) |
 | `commands/kickoff.md` | The `/zero-to-store:kickoff` command |
 
 ## Release commands (in your project)
@@ -145,11 +164,20 @@ one.
 
 ## FAQ
 
-- **Does it work in other languages?** Claude talks to you in your language.
-  Rules and templates ship in English and Turkish; project docs follow the
-  project language.
-- **Do I need every part?** No. Only the apps you ask for are created; no web
-  presence means no `apps/web` and no web workflow.
+- **Does it work in other languages?** Claude talks to you in your language in
+  every message, its questions included, and records the language in
+  CLAUDE.md so later sessions keep it. Rules and templates ship in English and
+  Turkish; project docs follow your language.
+- **Do I need every part?** No. Only the apps you ask for are created. Without
+  a website, a small legal-only site (privacy, terms, support, account
+  deletion) is still published, because both stores require those URLs.
+- **Do I have to use Supabase?** No. Supabase Cloud is the recommended
+  default, but you can self-host Supabase on your own server, use Firebase,
+  bring your own API or skip the backend; the rules adapt (rules Section
+  13.11).
+- **What can't Claude do for me?** Sign in, type passwords or 2FA codes,
+  create developer accounts, pay fees, pass identity checks or solve
+  CAPTCHAs. It prepares everything else and does it after one confirmation.
 - **Where do my keys go?** Into `hub/inbox/` on your machine (never committed).
   Claude moves each value to its target (env, GitHub Secrets, `fastlane/keys/`)
   and then deletes it from the inbox.

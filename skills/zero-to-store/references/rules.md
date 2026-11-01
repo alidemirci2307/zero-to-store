@@ -4,8 +4,9 @@
 > docs/RULES.md, then set up a SHORT CLAUDE.md that references it (an index,
 > ≤400 lines), an empty TODO.md, and the Project Hub (hub/) (see Section 17.0
 > and 16 — the order and file structure are defined there authoritatively).
-> Then ask the user the questions in the "Way of Working" section and set up
-> the project skeleton.
+> Then run the kickoff interview of Sections 17.8–17.9 (adaptive rounds,
+> best-practice defaults) and set up the project skeleton for what the user
+> chose. Talk to the user in their language throughout (Section 17.10).
 > In every later session: first read CLAUDE.md, PLAN.md and TODO.md, run
 > `node hub/server.mjs --status`; remind the user of the completed phases, the
 > next phase, the pending tasks and what is expected from the user (with the
@@ -21,9 +22,18 @@
 
 ## 1. Technology Stack
 
+- **Fixed vs chosen:** the mobile stack, Firebase Analytics + Crashlytics
+  and the admin panel stack are FIXED. The backend, web presence, hosting,
+  admin panel, monetization, languages and design approach are CHOSEN in
+  the kickoff interview (Section 17.8); they are never assumed.
 - **Mobile:** Flutter (Dart). State management: Riverpod. Routing: go_router.
-- **Backend:** Supabase (Auth, Postgres DB, Edge Functions).
-  RLS (Row Level Security) is designed in from the start.
+- **Backend:** chosen at kickoff. Recommended default: Supabase (Auth,
+  Postgres DB, Edge Functions, Realtime), either Supabase Cloud or
+  self-hosted Supabase on the user's own server; RLS (Row Level Security)
+  is designed in from the start. Alternatives: Firebase (Auth, Firestore,
+  Cloud Functions), no backend (data stays on the device) or the user's own
+  API. This document is written for Supabase; Section 13.11 lists what
+  changes with each choice.
 - **Storage:** If file/media storage is needed, Cloudflare R2 is used
   (S3-compatible API; free egress). Supabase Storage is considered only for
   very small and simple needs; the choice is presented to the user with its
@@ -31,17 +41,22 @@
 - **Realtime (socket):** Supabase Realtime is used for real-time needs; no
   separate socket server or third-party service (Socket.IO, Pusher, Ably,
   etc.) is added.
-- **Firebase:** Used ONLY for FCM (push), Crashlytics and Analytics.
-  Backend data is not written to Firebase. (firebase-cli is available.)
-- **Admin Panel:** React + Vite + TypeScript + Tailwind CSS + shadcn/ui.
-- **Web:** Landing/static pages are deployed to Hostinger shared hosting
-  (Node does not run; static/PHP only). Deep link files
+- **Firebase:** ALWAYS part of the project: Analytics and Crashlytics
+  (MANDATORY, Section 14), FCM for push, Remote Config when needed and
+  optionally Hosting. Backend data goes to Firebase only when Firebase is
+  the chosen backend. (The Firebase CLI and FlutterFire CLI are used.)
+- **Admin Panel:** React + Vite + TypeScript + Tailwind CSS + shadcn/ui,
+  when the project has one (Section 7.1).
+- **Web:** deployed to the hosting chosen at kickoff: Hostinger shared
+  hosting (static/PHP only; Node does not run), Firebase Hosting,
+  Cloudflare Pages or the user's own server. Deep link files
   (`.well-known/assetlinks.json`, `apple-app-site-association`) are placed
-  there.
+  there. Even without a website, the legal pages are hosted (Section 6.5).
 - **Repo:** A SINGLE private GitHub repo (monorepo); each app has its OWN
   version, CHANGELOG, tag and CI: `apps/mobile` (Flutter),
-  `apps/panel` (React), `apps/web` (landing/site), plus the shared `supabase/`,
-  `packages/`, `hub/`, `docs/`. The structure, versioning and tag rules are in
+  `apps/panel` (React), `apps/web` (landing/site), plus the shared backend
+  folder (`supabase/`; `firebase/` for a Firebase backend), `packages/`,
+  `hub/`, `docs/`. Only the apps chosen at kickoff exist. The structure, versioning and tag rules are in
   Section 15. The mobile paths mentioned in this document (`lib/`, `android/`,
   `ios/`, `fastlane/`, `integration_test/`, `tool/`, `pubspec.yaml`) are
   relative to the `apps/mobile/` root; the admin panel and web paths are
@@ -79,18 +94,129 @@
    - If the device language is not supported, the default language is English
      (if the project is local, the user is asked). The language structure is
      recorded in CLAUDE.md.
+   - If a right-to-left language (Arabic, Hebrew, Persian, Urdu) is
+     supported, layouts use directional values (start/end,
+     `EdgeInsetsDirectional`), direction-bearing icons are mirrored and
+     every screen is checked in RTL.
 
 ## 3. Design Rules (MANDATORY)
 
-1. If the user provided a design file (Claude Design, etc.), it is followed
-   exactly.
-2. If no design was provided: a high-quality design is created that is modern,
-   animated and based on a theme system (color/typography tokens).
+1. If there is a design — the user's own files or links, or the canvas
+   approved in Claude Design (Section 3.6) — it is followed exactly.
+2. If Claude designs in code (Section 3.5, approach b): a high-quality design
+   is created that is modern, animated and based on a theme system
+   (color/typography tokens), meeting Sections 3.7–3.11.
 3. If the design has no onboarding: an animated, on-theme onboarding that
    explains the app's main features is added (shown once on first launch and
    never shown again).
 4. Splash screen: modern, animated and on-theme, and shows the version name
    (package_info_plus).
+5. The design approach is chosen in the kickoff interview (Section 17.8)
+   and written to `docs/DECISIONS.md`:
+   - (a) Claude Design — RECOMMENDED: the whole app is designed and
+     approved before any UI is coded (Section 3.6).
+   - (b) Claude designs directly in code (Sections 3.7–3.11); the user
+     reviews the running app.
+   - (c) The user's own design (Figma, images, a link), followed exactly.
+6. Claude Design flow (approach a). Claude Design lives in Claude as the
+   "Design" and "Design System" artifact types, which Claude Code creates
+   with its Artifact tool (the old standalone claude.ai/design site is
+   being retired; never send the user there):
+   - Brief: `docs/design/BRIEF.md` is written from the skill's
+     `DESIGN_BRIEF.template.md` — product, audience, brand, competitors'
+     visual language, the full screen inventory and flows, the quality bar
+     of Sections 3.7–3.11 and the policy guardrails. It is the design's
+     single source.
+   - Design system first: a "Design System" artifact with the brand tokens
+     (light and dark colors, type scale, spacing, radius, elevation, motion
+     durations and curves) and the core components. A default design
+     system set by the user or their organization is used instead.
+   - Then one "Design" canvas: every screen of the inventory in every state
+     as phone artboards (390×844), grouped per flow, with prototype links
+     for the main journey (onboarding → paywall → first value).
+   - Review gate: the user reviews the links in Claude and comments; Claude
+     applies the comments until the user approves. UI phases start only
+     after approval; backend, infrastructure, CI/CD, release and store
+     setup phases run meanwhile (Section 17.7). The artifact links and the
+     approval date go to `docs/design/DESIGN.md`.
+   - Handoff: the approved tokens become the single theme source (Flutter
+     theme tokens, the Tailwind config of the panel and web) and every
+     screen is built to match its artboard. Store screenshots (Section
+     11.3) and the landing page use the same tokens.
+   - Not available (Claude Code not signed in with a claude.ai account, or
+     Artifacts and Design systems not enabled by a Team/Enterprise owner):
+     the user is told how to enable them; otherwise the same brief is run
+     in the Claude app and the user shares the artifact link, or the
+     project falls back to approach (b).
+7. Design quality bar (every approach; the brief carries the full
+   checklist):
+   - Original: a named visual concept that comes from the brand and the
+     audience; no template or stock-kit look; a custom illustration and
+     icon style; confident typography.
+   - Rich motion: micro-interactions on every interactive element,
+     meaningful screen transitions, animated onboarding and success
+     moments (Lottie or Rive), skeleton loaders. Motion tokens define
+     durations and curves. Motion stays smooth (60 fps on low-end Android,
+     Section 4.5) and honours the system "reduce motion" setting with a
+     calm alternative.
+   - Complete: every screen in every state (loading, empty, error,
+     offline, success), light and dark, the longest supported language and
+     RTL if supported, small and large phones, tablets if supported, plus
+     the system screens (splash, force update, no connection), permission
+     pre-prompts and settings (language, legal links, restore purchases,
+     delete account).
+8. Onboarding is rich and conversion-focused:
+   - 3–6 animated steps that show the core value in action instead of a
+     feature list, with a progress indicator and a skip option where it
+     does not break the flow.
+   - Personalization questions whose answers really change the experience
+     (and are used later), building commitment before the paywall.
+   - Benefit-first pre-permission screens before the system prompts
+     (notifications, ATT, camera…), shown at the moment of value (Sections
+     8.3, 9.2).
+   - With a subscription, onboarding ends on the paywall (Section 3.9).
+     Every step fires the onboarding events of Section 14.4, so drop-off
+     is measurable.
+9. Paywall and premium — store-policy compliant and built to convert
+   (Apple guidelines 3.1.1–3.1.2, Google Play Payments and Subscriptions
+   policies):
+   - The billed amount and period are the most prominent price element;
+     weekly or monthly equivalents are secondary. A free trial states its
+     length, what happens after it (auto-renewal, price, date) and how to
+     cancel, before the purchase.
+   - Restore purchases and links to the Terms of Use (EULA) and Privacy
+     Policy are on the paywall. Prices come from the store, localized,
+     never hard-coded.
+   - Forbidden: a hidden or delayed close button, fake countdowns or
+     scarcity, pre-selected options that hide cheaper ones, "free" for
+     something that will be charged without the terms next to it,
+     confirmshaming, and interrupting a core task with the paywall.
+   - Conversion within these rules: concrete benefits with icons, a
+     clearly marked recommended plan (e.g. yearly with its saving), a trial
+     timeline when there is a trial, one primary call to action, social
+     proof only when real.
+   - Entry points: the end of onboarding, taps on premium features and
+     settings. A premium screen shows the plan, renewal date, restore and
+     a link to manage the subscription in the store. Paywall variants run
+     as RevenueCat offerings and experiments (Section 14.10).
+10. Ads in the design (only when monetization includes ads):
+   - Every ad slot of the placement plan (Section 8.5) is drawn in the
+     design, so the layout is reviewed with its ads: no overlap with
+     content or controls, a safe distance from tap targets, native ads
+     labelled "Ad".
+   - No ads on onboarding, paywall, purchase, settings, account deletion
+     or permission screens. Interstitials only at natural breaks with
+     frequency caps — never at launch or exit and never right after a tap
+     on an unrelated control. Rewarded ads are always opt-in and state the
+     reward first.
+   - Premium removes every ad (Section 8.7); "Remove ads" is shown as a
+     premium benefit.
+11. Retention by design: the home screen always shows the next useful
+   action, empty states lead to the first value moment, progress, streaks
+   or achievements are used where they fit the product, success moments
+   are celebrated (where the review request of Section 8.10 also fits),
+   and content is personalized. Retention is measured with D1/D7/D30
+   cohorts (Section 14.10).
 
 ## 4. Mobile Behavior Rules (MANDATORY)
 
@@ -141,6 +267,18 @@
    area, back behavior, Apple/Google sign-in flows) are checked on both sides.
    If something cannot be tested (e.g. a feature requiring a real device), the
    user is notified.
+7. Accessibility is part of "done": text scales to 200% without clipping or
+   overlap; icon-only controls and meaningful images have semantic labels;
+   text contrast is at least 4.5:1; touch targets are at least 48 dp /
+   44 pt; the system "reduce motion" setting is honoured; the core flows
+   are checked once with TalkBack and VoiceOver. Accessibility declarations
+   in App Store Connect are answered truthfully from these checks.
+8. Platform requirements stay current: `targetSdkVersion` meets Google
+   Play's current target API level requirement, native libraries support
+   16 KB memory pages (required for apps targeting Android 15+), and iOS
+   builds use the Xcode/SDK version App Store Connect currently requires.
+   They are checked before every release; a gap is fixed before shipping,
+   not after a rejection.
 
 ## 5. Authentication Rules (MANDATORY)
 
@@ -162,12 +300,21 @@
      device tokens are removed. The operation is performed via an Edge
      Function with the service role (the client MUST NOT see the service
      role).
+   - With Sign in with Apple, the user's Apple tokens are revoked through
+     Apple's REST API as part of the deletion (Apple requirement).
    - A user with an active subscription is shown a notice that they must
      cancel their subscription through the store before deleting.
    - The account deletion page on the web also describes this flow (store
      requirement). The flow is recorded in CLAUDE.md.
 6. The auth flows (first sign-in, session refresh, sign-out, account deletion)
    and provider configuration details are recorded in CLAUDE.md.
+7. Whether the app needs accounts at all is decided at kickoff (Section
+   17.8). If the core features work without an account, people start
+   without signing in (guest mode) and are asked to sign in only when an
+   account-based feature is first used (sync, premium on several devices,
+   social features): Apple guideline 5.1.1(v) rejects forced sign-in
+   without significant account-based features. Without a backend there are
+   no accounts.
 
 ## 6. Web Presence Rules (MANDATORY)
 
@@ -176,26 +323,46 @@
    - Landing page only (features, screenshots, store links, contact)
    - Full website (a web version of the app / a multi-page site)
    - Both
+   - None: no website, only the legal pages the stores require (Section 6.5)
    No plan or code is written for the web side until an answer is received.
 2. Landing page: static (HTML/CSS/JS or a React static build), modern,
-   animated, on-theme, and deployed to Hostinger. The privacy policy,
+   animated, on-theme, and deployed to the hosting chosen at kickoff
+   (Section 1). The privacy policy,
    KVKK/GDPR/Privacy page, account deletion page and deep link files are also
    hosted here.
 3. If a full website is requested, its scope and technology are clarified
    separately and a plan is presented; it is coded after approval.
 4. The decision made is recorded in CLAUDE.md.
+5. Required pages exist even without a website: the stores need a privacy
+   policy URL, a support URL (App Store), an account deletion page (Google
+   Play, when accounts exist) and, with subscriptions, Terms of Use (EULA;
+   Apple's standard EULA may be linked). When the user wants no website,
+   `apps/web` is created in legal-only mode — privacy, terms, support and
+   account deletion pages in every app language, plus the deep link files
+   if deep links are used — and deployed to free hosting (Firebase Hosting
+   on the project's Firebase project by default). No landing or SEO
+   questions are asked in this mode; only the basics of Section 10 apply
+   (HTTPS, mobile-friendly, a title and description per page).
 
 ## 7. Admin Panel Rules (MANDATORY)
 
-1. The project MUST have an admin panel. Technology: React + Vite +
-   TypeScript + Tailwind + shadcn/ui. TanStack Table for tables,
-   Recharts for charts, the Supabase JS SDK for the backend.
+1. The admin panel is decided in the kickoff interview (Section 17.8). It
+   is recommended — and the default — whenever the app has a backend with
+   users, data or content to manage; without a backend there is no panel.
+   If the user declines it, management happens in the backend console
+   (Supabase Studio, Firebase console) and Firebase Remote Config /
+   Messaging, and the decision is written to `docs/DECISIONS.md`.
+   Technology: React + Vite + TypeScript + Tailwind + shadcn/ui. TanStack
+   Table for tables, Recharts for charts, the backend's JS SDK.
 2. The admin panel is also subject to the architecture rules in Section 2
    (SOLID, Clean Arch, 300-line limit, base structures, shared components).
-3. The deploy target is ASKED OF THE USER before work begins:
-   - If the user provided Hostinger details (FTP/panel access), it is deployed
-     there (static build + `.htaccess` rewrite for SPA routing).
-   - If not, Firebase Hosting is used.
+3. The deploy target is chosen in the kickoff interview, together with the
+   web hosting (Section 17.8):
+   - Hostinger: static build + `.htaccess` rewrite for SPA routing.
+   - Firebase Hosting: free; the default when the user has no preference.
+   - Cloudflare Pages or the user's own server (e.g. Coolify): a
+     `deploy-<app>-<target>.yml` in the same tag-triggered pattern
+     (Section 12.6).
    No admin panel deploy plan is made until a decision is reached.
 4. The admin panel is complete — the app MUST be FULLY manageable from the
    admin panel:
@@ -209,9 +376,9 @@
      single/bulk, target screen selection, per-language text, scheduling)
    - App settings (remotely manageable config values)
    - Logs / recent activity view
-5. Admin panel sign-in is done with Supabase Auth; admin authorization is
-   protected with RLS + a role table. Mobile users can never access the admin
-   panel.
+5. Admin panel sign-in is done with the backend's auth (Supabase Auth;
+   Section 13.11 for other backends); admin authorization is protected with
+   RLS + a role table. Mobile users can never access the admin panel.
 6. When a new feature is added to the app, the corresponding management screen
    on the admin panel side is added as well; this sync rule stays permanently
    in CLAUDE.md.
@@ -222,9 +389,9 @@
    Review Guidelines and Google Play Policy. A policy check is performed when
    planning every feature; if there is a risky situation, the user is notified
    before coding.
-2. Ads are managed with AdMob and AdMob policies are strictly followed (no
-   forcing accidental clicks, no hiding the close button, no
-   out-of-policy placements).
+2. When monetization includes ads (Section 8.11), they are managed with
+   AdMob and AdMob policies are strictly followed (no forcing accidental
+   clicks, no hiding the close button, no out-of-policy placements).
 3. Ad permission/consent flows are MANDATORY and are set up from the start:
    - iOS — ATT (App Tracking Transparency): the ATT permission is requested
      before accessing the advertising identifier; the
@@ -235,8 +402,9 @@
      are shown.
    - GDPR/UK — Google UMP SDK: a consent form is shown to users in
      Europe/the United Kingdom on first launch; ads are NOT LOADED without
-     consent. The user is reminded that the GDPR message needs to be
-     configured in the AdMob panel. The personalized /
+     consent. Claude configures the GDPR message in the AdMob panel itself
+     (Chrome MCP, Section 16.7); only if it cannot is the user reminded
+     through a Needs Center entry. The personalized /
      non-personalized ads distinction is managed automatically according to
      the consent state.
    - The order of these flows is set up correctly: UMP consent → ATT
@@ -272,20 +440,22 @@
      published app. The definitive check is made when the app is created in
      Play Console and the Identifier is created in Apple Developer.
    - The approved name is reserved EARLY: the app record is created in App
-     Store Connect and the app is created in Play Console (with a Needs
-     Center entry, on the correct account — Section 12.8).
+     Store Connect and the app is created in Play Console, on the correct
+     account (Section 12.8) — by Claude in Chrome MCP after the batch
+     confirmation of Section 16.7, or through a Needs Center entry if it
+     cannot.
    - Once it has gone to the store, the package name CANNOT BE CHANGED. The
      approved name and id are written to `docs/ASO.md` and referenced from
      CLAUDE.md.
-5. The ads strategy is planned to MAXIMIZE revenue. Every suitable format is
-   evaluated: banner, interstitial, rewarded, rewarded interstitial, native and
-   app open ad. Which format will be used on which screen is presented as an
+5. With ads, the ads strategy is planned to MAXIMIZE revenue within policy
+   (Section 3.10). Every suitable format is evaluated: banner, interstitial,
+   rewarded, rewarded interstitial, native and app open ad. Which format will be used on which screen is presented as an
    "ad placement plan" and the user's approval is obtained. Frequency caps
    (e.g. a cooldown for app open) are set in line with policy.
 6. In-app purchases and subscriptions are managed through RevenueCat (App
-   Store + Play Store from a single hub). The paywall design complies with
-   store rules (price, duration and cancellation information are stated
-   clearly).
+   Store + Play Store from a single hub). The paywall complies with store
+   rules (price, duration and cancellation information are stated clearly;
+   the full rules are in Section 3.9).
 7. Ads are NOT shown to premium/subscribed users; the ad layer works tied to
    the RevenueCat entitlement check.
 8. The ads and purchase structure (ad unit id management, entitlement names,
@@ -320,6 +490,20 @@
      violates Apple's rules.
    - The request frequency is limited (the OS already imposes a quota); the
      event after which it is requested is recorded in CLAUDE.md.
+11. The monetization model is chosen at kickoff (Section 17.8): free with
+   ads, freemium (subscription, with ads for free users), subscription
+   only, one-time purchase, paid app or none. Only the chosen parts are
+   built: without ads there is no AdMob, ATT prompt or ad placement plan;
+   without purchases there is no RevenueCat or paywall. The privacy
+   declarations follow what is really used (Section 8.9).
+12. Audience: whether children are part of the audience is asked at
+   kickoff. If they are, Google Play's Families policy (only
+   Families-certified ad SDKs, no personalized ads) and, in Apple's Kids
+   category, guideline 1.3 (no third-party ads, analytics only within
+   Apple's limits, a parental gate before links and purchases) shape the
+   plan before any SDK is added; the analytics setup of Section 14 is
+   adjusted to those limits and the trade-off is written to
+   `docs/DECISIONS.md`.
 
 ## 9. Push Notification Rules (MANDATORY)
 
@@ -428,9 +612,10 @@
    carry campaign parameters (Apple `pt`/`ct`, Play `referrer` + UTM).
    Deep link files are served with the correct content-type (Section 6.2).
 11. Search Console + Bing Webmaster Tools are set up: the domain is verified
-   (preferably via DNS TXT) and the sitemap is submitted. The required
-   access/verification is requested through a Needs Center entry
-   (Section 16.6). After launch, coverage and error reports are checked.
+   (preferably via DNS TXT) and the sitemap is submitted. Claude does the
+   verification itself — the DNS record through the DNS provider's API or
+   MCP, the consoles in Chrome MCP (Section 16.7) — and opens a Needs
+   Center entry only for what it cannot reach. After launch, coverage and error reports are checked.
 12. Web analytics and cookies: a cookieless analytics tool (Plausible,
    Umami, etc.) or GA4 + Consent Mode v2 is used. If there are non-essential
    cookies, a KVKK/GDPR-compliant cookie banner is added; "Reject" and
@@ -579,7 +764,9 @@
      * iOS: uploaded to the App Store with metadata + images, passes
        precheck and is submitted for review. After approval, release is done
        manually (`automatic_release: false`).
-   - One-time store facts (done through a Needs Center entry):
+   - One-time store steps (Claude does them in Chrome MCP after the batch
+     confirmation of Section 16.7; a Needs Center entry only for what it
+     cannot do):
      * The app is created in Play Console and the FIRST AAB is uploaded
        manually; the API does not work until the app has received a release
        on Play at least once. If the app has never been published (draft
@@ -657,8 +844,8 @@
    - iOS signing: in the Xcode project (Runner target), "Automatically
      manage signing" is enabled and the Team is selected; the release
      manages certificates/profiles itself using the App Store Connect API
-     key with `-allowProvisioningUpdates`. The Apple Developer Team ID is
-     requested through the Needs Center.
+     key with `-allowProvisioningUpdates`. The Apple Developer Team ID
+     comes from the `store-accounts` entry (Section 12.8).
    - Fastlane is pinned with a `Gemfile` (`bundle exec fastlane`);
      `Gemfile` and `Gemfile.lock` are committed.
 6. Web auto deploy is MANDATORY and VERSIONED (GitHub Actions):
@@ -684,6 +871,11 @@
      (template: `htaccess-spa.template` → `apps/<app>/public/.htaccess`).
    - Firebase Hosting target: build → Firebase Hosting `live` channel
      (service account JSON in Actions Secrets).
+   - Other app/target pairs (e.g. the web app on Firebase Hosting,
+     Cloudflare Pages, the user's own server): the closest template is
+     copied and adapted (`deploy-web-firebase.yml` from
+     `deploy-panel-firebase.yml`), keeping the tag trigger, the rollback
+     input and the dist.zip backup.
    - When the workflow is set up, it is verified on the first deploy and the
      process is recorded in `docs/CICD.md`.
 7. The release process (commands, tracks, versioning scheme, changelog flow,
@@ -697,6 +889,11 @@
      Team ID. These are written to `docs/RELEASE.md`. NO store operation
      (app creation, upload, metadata, test group) is performed until this
      entry is recorded.
+   - With Chrome MCP connected, Claude fills this entry itself (Section
+     16.7): it reads the Play developer ID and name and the Apple team name
+     and Team ID from the signed-in consoles, shows them in the chat and
+     asks the user to confirm that these are the accounts to publish from.
+     The entry is processed only after the user's yes.
    - When a store console is opened via Chrome MCP and multiple Google
      accounts (`/u/0`, `/u/1`…), multiple Play developer accounts or multiple
      App Store Connect teams are visible, Claude STOPS WITHOUT DOING ANYTHING
@@ -765,7 +962,8 @@
    `{entity}/{id}/{file}` layout and the structure is recorded in CLAUDE.md.
    R2 access keys are managed as secrets; signing via the API is done in an
    Edge Function, and the key is NEVER sent to the client.
-9. Supabase free tier pause prevention: if the project receives no requests
+9. Supabase Cloud free plan pause prevention (not needed for self-hosted
+   Supabase or other backends): if the project receives no requests
    for 7 days, it is paused by Supabase. To prevent this, a scheduled (cron,
    once a day) keep-alive workflow is set up in GitHub Actions; it sends a
    simple select request to a lightweight table. The Supabase URL and anon
@@ -785,6 +983,42 @@
      with a file size and content-type restriction.
    - The service role key lives ONLY in the Edge Function environment
      variables; it NEVER leaks to the client, logs or error messages.
+11. BACKEND VARIANTS: this document is written for Supabase (Section 1).
+   With another backend, each Supabase term is read as its equivalent
+   below and the goals stay the same: authorization at the data layer,
+   schema and rules as code, no privileged key in the client, backups,
+   rate limits.
+   - Supabase Cloud: a region close to the users (e.g. Frankfurt for
+     Turkey and the EU), the keep-alive of Section 13.9 on the free plan,
+     custom SMTP before launch if any email is sent (the built-in sender is
+     heavily rate-limited), and the backup level of the plan told to the
+     user.
+   - Self-hosted Supabase (the user's own server, e.g. Coolify or Docker):
+     `API_EXTERNAL_URL`, `SITE_URL` and the redirect URLs set to the public
+     HTTPS domain (otherwise auth links point to an internal address);
+     custom SMTP; Postgres and pooler ports never published (Docker
+     bypasses host firewalls such as UFW — use a provider firewall with
+     only 22/80/443 open); strong generated secrets kept outside the repo;
+     nightly off-site `pg_dump` + Storage backups with a tested restore and
+     a failure alert; unused services (analytics, vector, pooler) turned
+     off on small servers; no keep-alive. Server access comes through a
+     Needs Center entry (SSH host and user, key-based) — never a password
+     in chat.
+   - Firebase backend: RLS → Firestore Security Rules tested with the
+     emulator in CI; migrations → rules and indexes as code under
+     `firebase/`, deployed by CI; Edge Functions → Cloud Functions (Blaze
+     plan, with a budget alert); `app_config` → Remote Config;
+     `device_tokens` → a Firestore collection; App Check on; admin panel →
+     Firebase Auth with admin custom claims. The Postgres-specific items of
+     this section do not apply; the query, index and pagination goals do.
+   - No backend: data stays on the device (drift/sqflite, encrypted when
+     sensitive); no accounts, no account deletion flow and no admin panel;
+     force update and remote settings via Firebase Remote Config; push via
+     FCM topics or local notifications; RevenueCat works without an own
+     backend (anonymous IDs + restore purchases).
+   - The user's own API: the user names the stack and gives access through
+     the Needs Center; Claude writes an OpenAPI contract first and
+     generates the clients from it; the same security goals apply.
 
 ## 14. Monitoring — Crash and Analytics (MANDATORY)
 
@@ -793,6 +1027,13 @@
    last phase) and it is VERIFIED on both platforms (Android + iOS) by
    sending a test crash and a test event to the console. Setup is not
    considered "done" until verified.
+   Claude sets it up itself, whatever backend was chosen: the Firebase
+   project is created with the Firebase CLI (after the batch confirmation
+   of Section 16.7), the apps are registered and configured with
+   `flutterfire configure`, release builds use `--obfuscate
+   --split-debug-info` with Crashlytics symbol upload, and iOS dSYMs are
+   uploaded. Only signing in (`firebase login`) is the user's. The base
+   infrastructure phase is not complete without it.
 2. Crashlytics coverage is COMPLETE: ALL uncaught errors (Flutter framework
    errors, async/zone errors, platform/native errors) are reported to
    Crashlytics. Errors caught with try-catch but important are also logged
@@ -832,9 +1073,10 @@
    changed.
 6. The event list and its parameters are kept as a table in CLAUDE.md and are
    ALWAYS up to date; when a new feature is added, its events are added in
-   the same task — a feature without events is not merged. The user is
-   reminded that critical conversion events (the purchase funnel) must be
-   marked as conversions in Firebase.
+   the same task — a feature without events is not merged. Claude marks the
+   critical conversion events (the purchase funnel) as key events in
+   Firebase itself (Chrome MCP, Section 16.7); otherwise the user is
+   reminded through a Needs Center entry.
 7. User properties are also set: subscription status (free/premium), app
    language, whether onboarding is completed, notification permission status
    — so that every analysis can be done with these breakdowns.
@@ -844,6 +1086,11 @@
 9. This data is used for ad placement, paywall and onboarding optimization;
    conversion must be trackable in important funnels (paywall view →
    purchase, onboarding start → completion).
+10. Growth experiments: onboarding and paywall changes are tested, not
+   guessed. UI and onboarding variants run with Firebase Remote Config +
+   A/B Testing, prices and offers with RevenueCat Experiments; one change
+   at a time, judged by the funnel events of Section 14.4 and by D1/D7/D30
+   retention. Experiments and results are written to `docs/ANALYTICS.md`.
 
 ## 15. Testing, Git, Repo and Versioning Rules (MANDATORY)
 
@@ -923,8 +1170,10 @@
      main and from a HEAD that contains origin/main; the script enforces
      this.
    - Branch protection for main on GitHub (no force-push/deletion, CI
-     required) is recommended; the user configures the setting (Needs
-     Center entry).
+     required) is recommended. Claude sets it with `gh api` after the batch
+     confirmation of Section 16.7; GitHub offers it for private repos only
+     on paid plans, so on a free plan this is written to
+     `docs/DECISIONS.md` instead.
 10. The GitHub repo is created at kickoff: with the user's approval,
    `gh repo create <name> --private --source . --push`. If `gh` is missing
    or not signed in, a Needs Center entry is opened. Until the repo is
@@ -965,7 +1214,10 @@
      `docs/ASO.md` (name/id decision, keyword tables, copy, visual
      messages, experiments, ASO log), `docs/SEO.md` (keyword-to-page
      mapping, Lighthouse results, Search Console notes), `docs/OPS.md`
-     (post-launch operations setup and autonomy level, Section 18)
+     (post-launch operations setup and autonomy level, Section 18),
+     `docs/PRODUCT.md` (kickoff answers: idea, audience, v1 scope, stack
+     choices), `docs/design/` (design brief and approved design links,
+     Section 3.6)
    - If needed, a new file is opened for a new topic; its reference is
      added to CLAUDE.md. Core rule: information lives in ONE place and is
      pointed to by reference from elsewhere — the same information is not
@@ -1021,12 +1273,12 @@
      here. For this reason PLAN.md and the phase files follow the format in
      `hub/README.md`, and the done criteria in the phase file are checked
      off AS THE WORK PROGRESSES.
-   - NEEDS CENTER: During uninterrupted work (Section 17.7), EVERYTHING
-     needed from the user — API keys, service account files, FTP
-     credentials, store account access, panel settings, external steps
-     requiring approval — is added as a `hub/needs/<id>.json` entry
-     WITHOUT STOPPING the work. The user fills in the form on the page and
-     submits it.
+   - NEEDS CENTER: During uninterrupted work (Section 17.7), everything
+     that is still needed from the user after Section 16.7 (Claude does it
+     first) — sign-ins, payments, verifications, keys only the user can
+     create, external steps that need their decision — is added as a
+     `hub/needs/<id>.json` entry WITHOUT STOPPING the work. The user fills
+     in the form on the page and submits it.
    - Each entry guides the user as if they had no context at all: what is
      needed, why it is needed, which phase(s) and tasks it is holding up,
      prerequisites, STEP BY STEP where to find it (menu path + direct
@@ -1057,6 +1309,40 @@
    - CLAUDE.md contains an explicit reference to the Project Hub; in the
      session-start reminder, pending entries are summarized with links as
      "here is what's needed from you".
+7. CLAUDE DOES IT FIRST — the Needs Center is only for what Claude cannot
+   do. Before opening an entry, Claude tries a CLI (gh, firebase,
+   flutterfire, supabase, gcloud, xcrun, fastlane with an API key), then a
+   connected MCP, then Chrome MCP in the user's signed-in browser.
+   - Without asking: read-only and local work — reading IDs and settings
+     from consoles (after the account check of Section 12.8), generating
+     keys and passwords locally straight into files (keystore, JWT
+     secrets), and CLI calls that change nothing outside the project.
+   - After ONE confirmation in chat: anything that creates or changes
+     something in the user's accounts — projects, apps and resources
+     (Firebase, Play Console, App Store Connect, AdMob, RevenueCat,
+     Supabase, DNS), downloading key files (each named, with its source),
+     submitting console forms.
+     These are batched into one numbered list ("In Chrome I will: 1) …
+     2) … — OK?") so the user answers once. Terms and declarations are
+     shown to the user and accepted only after their explicit yes.
+   - Only the user: signing in, passwords, 2FA and passkeys; creating
+     developer or service accounts; payments and fees; identity, tax, bank
+     and business verification; CAPTCHAs; typing a secret into a
+     third-party web form. Claude prepares the rest (files ready, the
+     right page open) so the entry takes a few clicks.
+   - Secrets never pass through the chat, screenshots or page text. A key
+     file is downloaded and moved straight into `hub/inbox/files/<id>/`
+     (the temporary, gitignored inbox). A key shown in a console is copied
+     with the console's own Copy button, without revealing it, and written
+     into `hub/inbox/` with the clipboard command (`pbpaste` on macOS,
+     `wl-paste` or `xclip -o` on Linux, `Get-Clipboard` on Windows); then
+     the clipboard is cleared. Its shape is checked without printing it
+     (`jq -e`, `grep -c`) and it is processed with the normal flow
+     (Section 16.6, `hub/README.md`).
+   - Entries Claude completes itself are still written, already processed,
+     with `processedBy: "claude"` and a note of what was done (never a
+     value), so the hub shows what was handled for the user and it can be
+     redone by hand.
 
 ## 17. Way of Working (MANDATORY)
 
@@ -1066,34 +1352,45 @@
    index-style CLAUDE.md that references it (Section 16.1), an empty
    TODO.md, and setting up the Project Hub (hub/, Section 16.6). The order
    is mandatory:
-   1) Set up the monorepo skeleton (Section 15.4 — `git init -b main`,
-      `assets/repo/`), create docs/RULES.md + CLAUDE.md (index) + TODO.md +
-      hub/, make the first commit, connect the GitHub private repo
-      (Section 15.10), start the Project Hub server and give the link
-   2) Run the tool (MCP/CLI) check — see Section 17.0.1
-   3) Ask the questions in Section 17.8, record the answers in CLAUDE.md
-   4) Present the plan/phases, get approval
-   5) Write the approved plan as the PLAN.md index + docs/plan/phase-XX
-      files, open the foreseeable external needs of the phases in the
-      Needs Center, and commit (Section 17.3.3, 16.6)
-   6) Start the work
+   1) `git init -b main`; create docs/RULES.md + CLAUDE.md (index) +
+      TODO.md + hub/; make the first commit; start the Project Hub server
+      and give the link
+   2) Run the kickoff interview (Sections 17.8–17.9); write the answers to
+      docs/PRODUCT.md and docs/DECISIONS.md and update CLAUDE.md
+   3) Run the tool (MCP/CLI) check for the chosen stack — see Section
+      17.0.1
+   4) Set up the monorepo skeleton with the chosen apps only (Section
+      15.4 — `assets/repo/`) and connect the GitHub private repo (Section
+      15.10)
+   5) Research, then ONE approval round: name and package name, ASO
+      keywords, ad and push plans, SEO keywords (each only if relevant)
+      and the phase plan with its dependency graph (Section 17.8)
+   6) Write the approved plan as the PLAN.md index + docs/plan/phase-XX
+      files; do what Claude can do itself and open the rest as Needs
+      Center entries (Sections 16.6–16.7); commit (Section 17.3.3)
+   7) Start the work — with Claude Design, the design and its approval
+      gate come first (Section 3.6)
    This order guarantees that the rules persist even if the session is cut
    short early. Not a single line of project code is written before
    CLAUDE.md is created.
-0.1. The tool (MCP/CLI) check is MANDATORY: Before starting work, check
-   whether the connection tools the project will need are available and
-   working:
-   - Supabase MCP: for DB schema, migration, RLS, and query operations.
-   - Firebase CLI: for FCM, Crashlytics, Analytics, and (if selected)
-     Hosting deploy operations (`firebase --version` + the session status
-     is checked).
-   - Chrome MCP (browser automation): for testing the admin panel and the
-     website in a real browser, and for steps that need verification in
-     the AdMob/RevenueCat/store panels. In store consoles, the account is
-     verified before every action, and if there are multiple accounts the
-     user is asked (Section 12.8).
-   - RevenueCat MCP: for product/entitlement/offering configuration and
-     managing the purchase side.
+0.1. The tool (MCP/CLI) check is MANDATORY: once the stack is chosen,
+   check whether the tools it needs are available and working:
+   - Backend tools: Supabase MCP + Supabase CLI for Supabase (for
+     self-hosted Supabase, the MCP through an SSH tunnel); the Firebase CLI
+     for a Firebase backend.
+   - Firebase CLI + FlutterFire CLI: ALWAYS — for Analytics, Crashlytics,
+     FCM and (if selected) Hosting (`firebase --version`, `flutterfire
+     --version` and the login state are checked).
+   - Chrome MCP (browser automation): for the console work Claude does
+     (Section 16.7), testing the admin panel and the website in a real
+     browser, and verification in the AdMob/RevenueCat/store panels. In
+     store consoles, the account is verified before every action, and if
+     there are multiple accounts the user is asked (Section 12.8).
+   - RevenueCat MCP: when monetization includes purchases — products,
+     entitlements, offerings and experiments.
+   - GitHub CLI (`gh`): the repo, Actions secrets and releases.
+   - Claude Design: the Artifact tool with the "Design" and "Design
+     System" types, when that approach was chosen (Section 3.6).
    The check result is reported to the user: which are CONNECTED, which are
    MISSING. For the missing ones, setup/connection is REQUESTED from the
    user — explaining which tool is needed for which task. Work that depends
@@ -1105,9 +1402,10 @@
    this list which tools are usable, and if a tool is still missing at
    session start, the user is reminded again.
 1. If you are unsure about a task, you MUST ask questions before
-   proceeding; you settle the clarity of the task. HOWEVER, all questions
-   are collected and asked AT THE VERY START of the work (see
-   Sections 17.6-17.7); no questions are asked once the work has started.
+   proceeding; you settle the clarity of the task. HOWEVER, questions are
+   asked only in the kickoff interview and the approval round (Sections
+   17.8–17.9) and at the gates of Section 17.7; no other questions are
+   asked once the work has started.
 2. For large tasks, first present a short plan and code only after getting
    the user's approval.
 3. Phasing rule: If you have divided the project into phases, you write
@@ -1256,9 +1554,10 @@
    cost/speed balance and applies to all subagent tasks.
 6. Questions are asked AT THE START: ALL questions and approvals about the
    plan and phases, including the list in Section 17.8 (ad placement plan,
-   ASO keywords, bundle id, etc.), are collected and asked of the user in
-   one go before the project starts. The work starts after the answers are
-   received and recorded in CLAUDE.md.
+   ASO keywords, bundle id, etc.), are asked before the project starts:
+   decisions in the interview rounds, approvals in ONE approval round
+   (Sections 17.8–17.9). The work starts after the answers are received and
+   recorded (docs/PRODUCT.md, docs/DECISIONS.md, referenced from CLAUDE.md).
 7. NO QUESTIONS are asked at phase transitions: Unless the user specified
    otherwise, there is no stopping for approval/questions between phases;
    the plan is executed UNINTERRUPTED to the END. If a serious
@@ -1268,41 +1567,90 @@
    the Needs Center (Section 16.6), the task is linked in TODO.md, and work
    continues UNINTERRUPTED with tasks that do not require the tool/information.
    The user is asked only if the ENTIRE project is blocked, and the
-   situation is explained with its reasoning. EXCEPTION: if there is
-   account ambiguity in a store console, always stop and ask
-   (Section 12.8). No stopping for aesthetic or preference-based decisions;
+   situation is explained with its reasoning. EXCEPTIONS: account ambiguity
+   in a store console always stops the work for a question (Section 12.8);
+   with Claude Design, the UI phases wait for the design approval while the
+   other phases continue (Section 3.6). No stopping for aesthetic or
+   preference-based decisions;
    the best decision is made according to the rules in this document, and
    the decisions made are reported to the user at the end of the work.
-8. Things to ask the user before starting the project (the answers are
-   recorded in CLAUDE.md):
-   - Web presence: landing page, full site, or both? (Section 6)
-   - Admin panel deploy target: Hostinger or Firebase Hosting? (Section 7)
-   - Admin panel login method and admin accounts (Section 5.4)
-   - Is the project global, what are the target languages/markets? Which
-     languages will the app support? What should the default language be?
-     (Sections 2.5, 11.4, and 12.2 — i18n and store metadata are set up
-     according to these languages)
-   - Approval of the ad placement plan (Section 8.5)
-   - Approval of the push notification strategy — retention plan,
-     notification types, and frequency (Section 9.5)
-   - Target countries/stores and known competitor apps (Section 11.1)
-   - Is there a brand name idea; is a domain available, which one?
-     (Sections 8.4, 10)
-   - Approval of ASO keyword suggestions and app name/package name
-     candidates — with the uniqueness check already done (see
-     Sections 11.1 and 8.4)
-   - Approval of SEO target keywords (Section 10.4)
-   - Publishing accounts: which Play Console and which Apple Developer
-     account? (Obtained via the Needs Center `store-accounts` entry —
-     Section 12.8)
-   - If storage is needed: R2 or Supabase Storage (Sections 1 and 13.8)
-   - If the web deploy target is Hostinger, is FTPS supported?
-     (Section 12.6)
-   - Post-launch operations: daily routine on or off, and its autonomy
-     level (Section 18.2)
+8. Kickoff decisions, asked with the method of Section 17.9 (answers go to
+   `docs/PRODUCT.md`, decisions to `docs/DECISIONS.md`, both referenced
+   from CLAUDE.md):
+   - Round 1, scope: platforms (iOS + Android, or one of them); backend
+     (Supabase Cloud, self-hosted Supabase on the user's server, Firebase,
+     no backend, or the user's own API — Section 13.11); web presence
+     (none, landing page, full site, both — Section 6); monetization
+     (Section 8.11).
+   - Round 2, only what round 1 made relevant: the admin panel and its
+     sign-in method (only with a backend — Sections 7.1, 5.4); hosting for
+     the web and panel (only if there is one — Sections 1, 7.3); the
+     backend region or server; accounts and guest mode (Section 5.7);
+     phones only or tablets too (tablets add iPad and tablet screenshot
+     sets — Section 11.3); storage, if files are stored (R2 or Supabase
+     Storage — Sections 1, 13.8).
+   - Round 3, product: supported languages and the default language
+     (Sections 2.5, 11.4, 12.2); target countries and known competitors
+     (Section 11.1); the audience, including whether children are part of
+     it (Section 8.12); push notifications (Section 9); a brand name idea,
+     domain, logo or colors (Sections 8.4, 10).
+   - Round 4, design and operations: the design approach (Section 3.5);
+     the v1 feature scope (Claude proposes a list from the idea and the
+     user ticks it); post-launch operations and their autonomy level
+     (Section 18.2).
+   - Approval round, after Claude's research, in one message: app name and
+     package name candidates with the uniqueness check (Sections 8.4,
+     11.1); ASO keywords; the ad placement plan (only with ads — Section
+     8.5); the push strategy (only with push — Section 9.5); SEO keywords
+     (only with a website — Section 10.4); the phase plan (Section 17.2).
+   - Publishing accounts are settled through the `store-accounts` entry,
+     which Claude fills from the consoles when it can (Section 12.8).
+   - Never asked: what the user already said; the mandatory parts
+     (Firebase Analytics + Crashlytics, i18n, tests, release automation);
+     facts Claude can find out itself (name availability in the stores,
+     FTPS support, domain availability).
    ACCESS CREDENTIALS (FTP password, R2 keys, API keys, store account
-   files) are NOT REQUESTED in chat — they are opened as a Needs Center
-   entry (Section 16.6); questions are only for decisions and approvals.
+   files) are NOT REQUESTED in chat — Claude fetches them itself or opens
+   a Needs Center entry (Sections 16.6–16.7); questions are only for
+   decisions and approvals.
+9. Kickoff interview method:
+   - Before asking, Claude extracts every answer the user's idea and
+     messages already contain, and never asks those again.
+   - Questions use the structured question tool when it exists (Claude
+     Code: AskUserQuestion): at most 4 questions per round and 2–4 options
+     each, the best-practice option first and marked "(Recommended)", one
+     line per option on what it means and costs. Without the tool, a
+     numbered list with the recommended default. Free text is always
+     possible.
+   - Rounds are ADAPTIVE: each round asks only what earlier answers made
+     relevant. No website → no hosting, SEO or landing questions; no
+     backend → no panel, region or account questions; no ads → no ad
+     questions; a single language → no default-language question.
+   - The recommended options follow the rules of this document and current
+     store policies, so a user who always picks "Recommended" still gets a
+     complete, compliant project.
+   - After the last round Claude sums the decisions up in 5–10 lines and
+     goes on to the research; the user can still correct any line.
+10. Conversation language: Claude talks to the user in the user's language
+   in EVERY message — questions and the option labels of the question
+   tool, plans, summaries, status reports, Needs Center entries and the
+   hub — even when the skill files, tool output or subagent reports are in
+   English. The language comes from the user's own words or the session's
+   configured response language; if it is still unclear (e.g. the command
+   was run without any text), Claude asks once, in both languages. It is
+   written to CLAUDE.md ("Conversation language: …") so every later session
+   keeps it, and it changes only when the user asks.
+11. Every plan contains, whatever the answers: a base infrastructure phase
+   with Firebase Analytics + Crashlytics verified on both platforms
+   (Section 14.1), the i18n skeleton for all chosen languages, the theme
+   from the design tokens, the router, error handling and force update
+   (Section 4.4); the legal pages (Section 6.5); the privacy declarations
+   and privacy manifest (Section 8.9); account deletion when accounts exist
+   (Section 5.5); store listings, screenshots and release automation for
+   every language (Sections 11, 12); App Review notes (how to reach every
+   feature and how to test premium); and, with Claude Design, the design
+   phase and its approval gate (Section 3.6). A plan missing one of these
+   is incomplete and is fixed before it is presented.
 
 ## 18. Post-launch Operations (MANDATORY when enabled)
 

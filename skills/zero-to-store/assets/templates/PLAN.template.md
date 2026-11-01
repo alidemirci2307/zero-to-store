@@ -15,6 +15,8 @@ P01 (core) ─┬─> P02 auth ──┐
             └─> P05 landing
 ```
 Parallel groups: G1 = {P01} · G2 = {P02, P03, P04, P05} · G3 = {P06, P07} ...
+<!-- With Claude Design (RULES Section 3.6): a design phase runs in G1 next to
+P01, and every UI phase depends on its approval. -->
 
 ## Phase Index
 | # | Phase | Status | Depends | Group | Estimate | Start | End | Duration | File |

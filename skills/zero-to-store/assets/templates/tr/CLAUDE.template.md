@@ -3,6 +3,10 @@
 > Bu dosya bir İNDEKSTİR (≤400 satır). Detay taşımaz; her konu için ilgili
 > docs/ dosyasına yönlendirir. Her session bu dosyayı okur, sonra yalnızca
 > işi için gereken dokümanları açar.
+>
+> **Konuşma dili: {{KONUSMA_DILI}}.** Kullanıcıya giden her mesaj bu
+> dildedir; dosyalar, araçlar ya da subagent'lar İngilizce olsa bile (RULES
+> Bölüm 17.10).
 
 ## 0. Session Başlangıç Prosedürü
 1. Bu dosyayı oku.
@@ -20,10 +24,11 @@
 - **Proje adı:** {{PROJE_ADI}} — **Ne yapar:** {{KISA_ACIKLAMA}}
 - **Bundle ID:** {{BUNDLE_ID}} (DEĞİŞTİRİLEMEZ)
 - **Diller:** {{DILLER}} | Varsayılan: {{VARSAYILAN_DIL}}
-- **Web varlığı:** {{LANDING_MI_SITE_MI}} — **Panel deploy:** {{HEDEF}}
-- **Stack:** Flutter (Riverpod, go_router) · React panel · Supabase ·
-  Firebase (FCM/Crashlytics/Analytics) · AdMob · RevenueCat · R2
-- **Repo:** monorepo — `apps/mobile` · `apps/panel` · `apps/web` · ortak `supabase/`
+- **Web varlığı:** {{WEB_VARLIGI}} — **Admin panel:** {{PANEL}} — **Hosting:** {{HOSTING}}
+- **Stack:** Flutter (Riverpod, go_router) · Firebase Analytics + Crashlytics ·
+  backend: {{BACKEND}} · gelir modeli: {{GELIR_MODELI}} · tasarım: {{TASARIM_YAKLASIMI}}
+  (tüm başlangıç cevapları: `docs/PRODUCT.md`, kararlar: `docs/DECISIONS.md`)
+- **Repo:** monorepo — yalnızca seçilen uygulamalar (`apps/mobile` · `apps/panel` · `apps/web`) · ortak backend klasörü
   (her uygulamanın kendi sürümü/CHANGELOG'u/tag'i: `mobile/vX.Y.Z` — RULES Bölüm 15)
 - **Release:** `./release.sh mobile all internal` → test edildikten sonra
   `./release.sh mobile all promote` · `./release.sh web` · `./release.sh panel` ·
@@ -32,10 +37,12 @@
 ## 2. Araçlar (MCP/CLI) Durumu
 | Araç | Durum | Not |
 |---|---|---|
-| Supabase MCP | {{BAGLI/EKSIK}} | |
-| Firebase CLI | {{BAGLI/EKSIK}} | |
-| Chrome MCP | {{BAGLI/EKSIK}} | |
-| RevenueCat MCP | {{BAGLI/EKSIK}} | |
+| Backend araçları ({{BACKEND}}: Supabase MCP + CLI ya da Firebase CLI) | {{BAGLI/EKSIK}} | |
+| Firebase CLI + FlutterFire CLI (her zaman) | {{BAGLI/EKSIK}} | |
+| Chrome MCP (konsol işleri, RULES Bölüm 16.7) | {{BAGLI/EKSIK}} | |
+| RevenueCat MCP (satın alma varsa) | {{BAGLI/EKSIK}} | |
+| GitHub CLI (`gh`) | {{BAGLI/EKSIK}} | |
+| Claude Design (Artifact aracı, seçildiyse) | {{BAGLI/EKSIK}} | |
 
 ## 3. KURALLAR — KESİN
 Projenin tüm kuralları **`docs/RULES.md`** dosyasındadır ve KESİNDİR.
@@ -45,10 +52,11 @@ Herhangi bir iş yapmadan önce ilgili bölümünü oku. Özet hatırlatma:
 - Her ekran: loading/empty/error/offline + back tuşu davranışı
 - Her özellik: analytics event'leri + Crashlytics breadcrumb ile birlikte gelir
 - Her özellik: Android emulator + iOS simulator'da test edilmeden bitmez
-- Giriş sadece Google + Apple; e-posta yok
-- Reklam AdMob (premium'a gösterilmez), IAP RevenueCat
-- Fazlar subagent (Sonnet) ile, bağımsızlar PARALEL; fazlar arası soru yok
-- Kullanıcıdan gereken her şey İhtiyaç Merkezi'ne (hub/needs/) — sohbetten key istenmez
+- Giriş sadece Google + Apple (e-posta yok); ana işlev hesapsız çalışıyorsa misafir modu
+- Gelir modeli seçildiği gibi: AdMob reklamları premium'a gösterilmez, IAP RevenueCat, politikaya uygun paywall (RULES Bölüm 3.9)
+- Arayüz onaylanan tasarıma birebir uyar (`docs/design/DESIGN.md`)
+- Fazlar subagent (Sonnet) ile, bağımsızlar PARALEL; RULES Bölüm 17.7'deki kapılar dışında fazlar arası soru yok
+- Önce Claude yapar (CLI, MCP, Chrome — RULES Bölüm 16.7); yalnızca kalanı İhtiyaç Merkezi'ne (hub/needs/); sohbetten key istenmez
 - Store işlemi yalnızca docs/RELEASE.md'deki DOĞRU hesapta; çoklu hesapta önce SOR (Bölüm 12.8)
 - Store metinleri/görselleri desteklenen HER dilde; release öncesi `fastlane check_metadata`
 - Detay taşıyan bilgi docs/ altına yazılır, buraya sadece referans gelir
@@ -56,6 +64,8 @@ Herhangi bir iş yapmadan önce ilgili bölümünü oku. Özet hatırlatma:
 ## 4. Doküman Haritası (detay için oku)
 | Konu | Dosya |
 |---|---|
+| Başlangıç cevapları: fikir, hedef kitle, v1 kapsamı, yığın seçimleri | `docs/PRODUCT.md` |
+| Tasarım brief'i, onaylanan Design System + canvas linkleri, onay tarihi | `docs/design/` |
 | Mimari, klasör yapısı, base yapılar, component listesi | `docs/ARCHITECTURE.md` |
 | DB şeması (dump), RLS, index'ler | `docs/DB_SCHEMA.md` |
 | Auth akışları, provider ayarları, hesap silme | `docs/AUTH.md` |

@@ -11,8 +11,10 @@
 
 ## 1. What this is
 `zero-to-store` is a public Claude Code plugin + skill. It takes a mobile app
-idea to the App Store and Google Play: Flutter app + React admin panel +
-Supabase backend + landing page in a monorepo. It enforces a strict rule set
+idea to the App Store and Google Play: a Flutter app plus the backend
+(Supabase Cloud by default, self-hosted Supabase, Firebase or none), admin
+panel and web presence the user picks in an adaptive kickoff interview,
+designed in Claude Design, in a monorepo. It enforces a strict rule set
 (architecture, i18n, store policy, ASO/SEO, push, ads/IAP, monitoring) and
 ships fully automated multi-language releases. A local **Project Hub** (live
 roadmap + Needs Center) shows the user everything.
@@ -36,7 +38,7 @@ skills/zero-to-store/SKILL.md     entry point; portable frontmatter only (name, 
   assets/project-hub/             server.mjs + lib/{needs,plan,ops}.mjs + public/ (vanilla JS, i18n.js EN/TR; tabs Plan / Needs / Operations) + README.md + examples/needs/*.json
   assets/store-screenshots/       capture.sh (flutter drive) + render.mjs/frame.css (headless Chrome) + Dart templates + config
   assets/templates/               Fastfile, fastlane-store-helpers.rb, Gemfile, testers.txt, beta_review_info.json, htaccess-spa, CHANGELOG
-  assets/templates/*.template.md + tr/   CLAUDE/PLAN/PHASE/TODO/DAILY_OPS in EN and TR; ops-config.json.template
+  assets/templates/*.template.md + tr/   CLAUDE/PLAN/PHASE/TODO/DAILY_OPS/DESIGN_BRIEF in EN and TR; ops-config.json.template
 scripts/validate.sh               all checks (run before every commit)
 scripts/check-parity.mjs          EN/TR structure check (rules, templates, README)
 scripts/release.sh                release THIS repo (bump, changelog, tag vX.Y.Z, push)
@@ -56,7 +58,13 @@ install.sh                        manual install (non-plugin)
 | Every tag → GitHub Release (mobile: AAB/IPA; web/panel: dist.zip from CI) | Binary backup of what shipped |
 | Web/panel deploy on **tag**, not on every main push; main push runs CI only; rollback = re-run deploy workflow with an old tag | Versioned, reversible deploys |
 | Mobile: `internal` (Play internal + closed testing "testers", TestFlight external group "testers" auto-created) → `promote` (same build to production, no rebuild) → `production` only for hotfix | Build once, promote |
-| Store account safety: `store-accounts` need record first. Claude stops and asks if a console shows multiple accounts (the ONE exception to "no questions between phases"). `fastlane verify_accounts` aborts release if keys belong to another account | Wrong-account publishing is irreversible |
+| Store account safety: `store-accounts` need record first (Claude fills it from the consoles, the user confirms). Claude stops and asks if a console shows multiple accounts (one of the two gates of rules Section 17.7). `fastlane verify_accounts` aborts release if keys belong to another account | Wrong-account publishing is irreversible |
+| Kickoff = adaptive interview (Sections 17.8–17.9): ≤4 rounds via AskUserQuestion, the best-practice option first and marked Recommended, never asking what the user said or ruled out; then ONE approval round. After that only two gates: store-account ambiguity and the design approval | Maintainer (2026-11-01): ask the critical questions in the right place with best-practice defaults; no web → no web questions |
+| Backend is a kickoff choice. The rules stay written for Supabase, and Section 13.11 maps each term to self-hosted Supabase, Firebase, no backend or the user's own API | Users may not want Supabase or want it on their own VPS. One rule text plus a mapping keeps EN/TR parity and context cost manageable, instead of parallel rule sets |
+| Claude Design = the "Design" and "Design System" artifact types that Claude Code creates with its Artifact tool (the standalone claude.ai/design site closes 2026-12-14; never send users there). The design approval gates UI phases only; non-UI phases continue | Design before code with the user's approval, without blocking backend/release work |
+| Claude does it first (Section 16.7): CLI → MCP → Chrome MCP, one batched confirmation for anything that changes the user's accounts. Secrets move via download or clipboard (`pbpaste`) into `hub/inbox/`, never through the chat or screenshots. User-only: sign-in, passwords/2FA, account creation, payments, verification, CAPTCHAs, typing secrets into third-party forms. Records Claude completed get `processedBy: "claude"` (hub badge) | Maintainer: Claude left solvable needs to the user. The user-only list mirrors Claude's own browser-safety limits, so the skill never asks Claude for something it would refuse |
+| Conversation language is locked (Section 17.10): at the top of SKILL.md, the first line of the kickoff command and the CLAUDE.md template; asked once in both languages when unknown | Users saw drift to English: the skill files are English and a bare command carries no user text |
+| Admin panel is optional (recommended with a backend). No website → `apps/web` in legal-only mode on Firebase Hosting | Both stores require privacy/support (and Play account-deletion) URLs even without a website |
 | Secrets never asked in chat → Needs Center (`hub/needs/<id>.json` without values; values go to gitignored `hub/inbox/`, deleted after processing) | Security + UX |
 | App name + package name chosen after ASO research and a uniqueness check in both stores; package = brand-consistent `com.<domain>.<brand>`, not keyword-stuffed | Package can never change; store name can |
 | Store screenshots fully automated per locale (capture → framed render → fastlane folders); `fastlane check_metadata` validates limits/policy per locale before release | "Everything automatic", ASO quality |
@@ -108,7 +116,9 @@ install.sh                        manual install (non-plugin)
   PLAN.md + docs/plan, copy examples to `hub/needs`, then run
   `node hub/server.mjs`. Check it in the browser pane or capture with headless
   Chrome (`--force-dark-mode --virtual-time-budget=6000`). Deep links:
-  `#/plan/7`, `#/needs/<id>`, `?lang=en|tr`.
+  `#/plan/7`, `#/needs/<id>`, `?lang=en|tr`. To see the "Done by Claude"
+  badge, mark an example record `status: "processed"`, `processedBy:
+  "claude"` (checked in EN/TR, light/dark on 2026-11-01).
 - **Operations tab:** put `ops/config.json` (from the template), a generated
   `ops/metrics.jsonl` (21 days, including a regression and its fix) and
   `docs/ops/daily/*.md` + `docs/ops/weekly-*.md` into the demo project, then
@@ -157,7 +167,7 @@ not empty and validate.sh passes. It then:
 Users update with `claude plugin update zero-to-store@zero-to-store` or by
 turning on auto-update.
 
-## 7. Current status (2026-10-14) and next steps
+## 7. Current status (2026-11-01) and next steps
 - [x] **Public** repo with description, 15 topics and Discussions enabled.
   Commits use `Ali Demirci <alidemirci2307@gmail.com>`; this is set in the
   repo-local git config (the global config has a different address). History
@@ -214,9 +224,21 @@ turning on auto-update.
   start (autoUpdate).
   - Live store calls (rollout/halt/phased) are unverified, like the other
     store lanes. API names were checked in the fastlane 2.238 source.
-  - Planned for v1.2: the data scripts the DAILY_OPS template looks for in
-    `ops/scripts/`: store reviews + replies, Play vitals (Reporting API),
-    GA4, ASO ranks.
+  - Planned later (not in the next release): the data scripts the
+    DAILY_OPS template looks for in `ops/scripts/`: store reviews +
+    replies, Play vitals (Reporting API), GA4, ASO ranks.
+- [ ] **Unreleased (2026-11-01), next minor = v1.2.0**, all in CHANGELOG
+  `[Unreleased]`: adaptive kickoff interview, backend choice (Section
+  13.11), Claude Design flow + `DESIGN_BRIEF` template, "Claude does it
+  first" (Section 16.7) with the hub's "Done by Claude" badge, language
+  lock, legal-only website, optional admin panel, plus new rules 2.5 (RTL),
+  4.7–4.8, 5.5 (Apple token revocation), 5.7, 8.11–8.12, 14.10, 17.11.
+  validate.sh is green. Not committed yet.
+  - Not verified live: a full kickoff run with the new interview, Design
+    artifact creation from a user project, and the Chrome clipboard flow
+    (`pbpaste` after a console Copy button).
+  - Before releasing: update the launch kit texts (they still say
+    "Flutter + React + Supabase" and "asks every question up front").
 - [ ] Maintainer (manual, no API): upload `docs/images/banner.png` under
   Settings → General → Social preview.
 - [ ] Deferred by the maintainer: dogfood the skill end to end on a small real

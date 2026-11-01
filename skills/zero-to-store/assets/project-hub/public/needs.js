@@ -76,7 +76,7 @@ export function createNeedsView({ api, refresh }) {
           <p>${t("n.willProcess")}</p>${edit}</div></div>`;
       }
       case "processed":
-        return `<div class="notice n-ok">${icon("check")}<p><strong>${t("n.processed")}</strong>${item.processedAt ? ` · ${timeAgo(item.processedAt)}` : ""}. ${md(item.processedNote ?? "")}</p></div>`;
+        return `<div class="notice n-ok">${icon("check")}<p><strong>${t(item.processedBy === "claude" ? "n.processedByClaude" : "n.processed")}</strong>${item.processedAt ? ` · ${timeAgo(item.processedAt)}` : ""}. ${md(item.processedNote ?? "")}</p></div>`;
       case "cancelled":
         return `<div class="notice n-warn">${icon("block")}<p><strong>${t("n.cancelled")}</strong> ${md(item.cancelReason ?? "")}</p></div>`;
       default:
@@ -107,6 +107,7 @@ export function createNeedsView({ api, refresh }) {
     el.dataset.id = item.id;
     const phaseChips = (item.phases ?? []).map((no) => `<a class="chip chip-phase" href="#/plan/${esc(phaseKey(no))}">${icon("flag")}${t("chip.phase", { no: esc(no) })}${phaseName(no) ? ` · ${esc(phaseName(no))}` : ""}</a>`).join("");
     const chips = [
+      item.processedBy === "claude" && `<span class="chip chip-auto">${icon("spark")}${t("chip.byClaude")}</span>`,
       item.category && `<span class="chip">${icon("tag")}${esc(item.category)}</span>`,
       item.eta && `<span class="chip">${icon("clock")}${esc(item.eta)}</span>`,
       phaseChips,

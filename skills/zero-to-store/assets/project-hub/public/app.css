@@ -128,6 +128,7 @@ h1 { margin: 0; font-size: 34px; line-height: 1.15; letter-spacing: -.02em; }
 .chip { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; padding: 3px 9px; border-radius: 999px; background: var(--surface-2); color: var(--muted); }
 .chip svg { font-size: 13px; }
 .chip.blocks { background: var(--amber-soft); color: var(--amber); }
+.chip.chip-auto { background: var(--green-soft); color: var(--green); font-weight: 600; }
 .badge { flex: none; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
 .b-pending { background: var(--amber-soft); color: var(--amber); }
 .b-rejected, .b-invalid { background: var(--red-soft); color: var(--red); }

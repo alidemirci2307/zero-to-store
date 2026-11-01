@@ -3,6 +3,10 @@
 > This file is an INDEX (≤400 lines). It carries no detail; it points to the
 > relevant docs/ file for each topic. Every session reads this file, then opens
 > only the documents its task needs.
+>
+> **Conversation language: {{CONVERSATION_LANGUAGE}}.** Every message to the
+> user is in this language, even when files, tools or subagents are in
+> English (RULES Section 17.10).
 
 ## 0. Session Start Procedure
 1. Read this file.
@@ -21,10 +25,11 @@
 - **Project name:** {{PROJECT_NAME}} — **What it does:** {{SHORT_DESCRIPTION}}
 - **Bundle ID:** {{BUNDLE_ID}} (CANNOT BE CHANGED)
 - **Languages:** {{LANGUAGES}} | Default: {{DEFAULT_LANGUAGE}}
-- **Web presence:** {{WEB_PRESENCE}} — **Panel deploy:** {{TARGET}}
-- **Stack:** Flutter (Riverpod, go_router) · React panel · Supabase ·
-  Firebase (FCM/Crashlytics/Analytics) · AdMob · RevenueCat · R2
-- **Repo:** monorepo — `apps/mobile` · `apps/panel` · `apps/web` · shared `supabase/`
+- **Web presence:** {{WEB_PRESENCE}} — **Admin panel:** {{PANEL}} — **Hosting:** {{HOSTING}}
+- **Stack:** Flutter (Riverpod, go_router) · Firebase Analytics + Crashlytics ·
+  backend: {{BACKEND}} · monetization: {{MONETIZATION}} · design: {{DESIGN_APPROACH}}
+  (all kickoff answers: `docs/PRODUCT.md`, decisions: `docs/DECISIONS.md`)
+- **Repo:** monorepo — only the chosen apps (`apps/mobile` · `apps/panel` · `apps/web`) · shared backend folder
   (each app has its own version/CHANGELOG/tag: `mobile/vX.Y.Z` — RULES Section 15)
 - **Release:** `./release.sh mobile all internal` → after testing,
   `./release.sh mobile all promote` · `./release.sh web` · `./release.sh panel` ·
@@ -33,10 +38,12 @@
 ## 2. Tool (MCP/CLI) Status
 | Tool | Status | Note |
 |---|---|---|
-| Supabase MCP | {{CONNECTED/MISSING}} | |
-| Firebase CLI | {{CONNECTED/MISSING}} | |
-| Chrome MCP | {{CONNECTED/MISSING}} | |
-| RevenueCat MCP | {{CONNECTED/MISSING}} | |
+| Backend tools ({{BACKEND}}: Supabase MCP + CLI, or Firebase CLI) | {{CONNECTED/MISSING}} | |
+| Firebase CLI + FlutterFire CLI (always) | {{CONNECTED/MISSING}} | |
+| Chrome MCP (console work, RULES Section 16.7) | {{CONNECTED/MISSING}} | |
+| RevenueCat MCP (if purchases) | {{CONNECTED/MISSING}} | |
+| GitHub CLI (`gh`) | {{CONNECTED/MISSING}} | |
+| Claude Design (Artifact tool, if chosen) | {{CONNECTED/MISSING}} | |
 
 ## 3. RULES — STRICT
 All project rules live in **`docs/RULES.md`** and are STRICT.
@@ -46,10 +53,11 @@ Read the relevant section before doing any work. Summary reminder:
 - Every screen: loading/empty/error/offline + back button behavior
 - Every feature ships with analytics events + Crashlytics breadcrumbs
 - No feature is done until tested on an Android emulator + iOS simulator
-- Sign-in is Google + Apple only; no email
-- Ads via AdMob (not shown to premium users), IAP via RevenueCat
-- Phases run via subagents (Sonnet), independent ones in PARALLEL; no questions between phases
-- Everything needed from the user goes to the Needs Center (hub/needs/) — never ask for keys in chat
+- Sign-in is Google + Apple only (no email); guest mode when the core works without an account
+- Monetization as chosen: AdMob ads hidden for premium, IAP via RevenueCat, a policy-safe paywall (RULES Section 3.9)
+- UI follows the approved design exactly (`docs/design/DESIGN.md`)
+- Phases run via subagents (Sonnet), independent ones in PARALLEL; no questions between phases except the gates of RULES Section 17.7
+- Claude does it first (CLI, MCP, Chrome — RULES Section 16.7); only the rest goes to the Needs Center (hub/needs/); never ask for keys in chat
 - Store operations only on the CORRECT account listed in docs/RELEASE.md; with multiple accounts, ASK first (Section 12.8)
 - Store texts/visuals in EVERY supported language; run `fastlane check_metadata` before release
 - Detailed information is written under docs/; only a reference goes here
@@ -57,6 +65,8 @@ Read the relevant section before doing any work. Summary reminder:
 ## 4. Document Map (read for detail)
 | Topic | File |
 |---|---|
+| Kickoff answers: idea, audience, v1 scope, stack choices | `docs/PRODUCT.md` |
+| Design brief, approved Design System + canvas links, approval date | `docs/design/` |
 | Architecture, folder structure, base structures, component list | `docs/ARCHITECTURE.md` |
 | DB schema (dump), RLS, indexes | `docs/DB_SCHEMA.md` |
 | Auth flows, provider settings, account deletion | `docs/AUTH.md` |

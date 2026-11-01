@@ -13,16 +13,25 @@
 <p align="center"><a href="README.md">English</a> · <b>Türkçe</b></p>
 
 **zero-to-store**, bir mobil uygulama fikrini App Store ve Google Play'e kadar
-götüren bir Claude Code plugin'idir. Claude ürünü fazlara böler; Flutter
-uygulamasını, React admin paneli, Supabase backend'i ve landing sayfasını
-paralel olarak geliştirir ve tamamen otomatik, çok dilli store release'leriyle
-yayına alır. Arkasındaki kural seti net tercihleri olan, üretim kalitesinde
+götüren bir Claude Code plugin'idir. Claude ürünü seninle görüşerek netleştirir,
+fazlara böler, Claude Design'da seninle tasarlar; Flutter uygulamasını
+seçtiğin backend, admin panel ve web sitesiyle paralel olarak geliştirir ve
+tamamen otomatik, çok dilli store release'leriyle yayına alır. Arkasındaki kural seti net tercihleri olan, üretim kalitesinde
 bir standarttır. Her şeyi yerel **Proje Merkezi**'nden canlı izlersin.
 
 ## Neden
 
-- **Tek komutla başlangıç.** `/zero-to-store:kickoff <fikrin>`. Claude bütün
-  soruları en başta bir kez sorar, sonra planın tamamını durmadan uygular.
+- **Gerçek bir başlangıç görüşmesi.** `/zero-to-store:kickoff <fikrin>`.
+  Claude kritik soruları birkaç uyarlanan turda, her birinde önerilen en iyi
+  pratik cevapla sorar ve önceki cevaplarının gereksiz kıldığı soruları
+  atlar. Sonra planın tamamını durmadan uygular.
+- **Yığın senin seçimin.** Supabase Cloud, kendi sunucunda self-hosted
+  Supabase, Firebase ya da hiç backend olmadan; Hostinger, Firebase Hosting,
+  Cloudflare Pages ya da kendi sunucun. Firebase Analytics ve Crashlytics her
+  zaman vardır.
+- **Kodlanmadan önce tasarlanır.** Claude Design ile her ekran Claude'da
+  tasarlanır, sen inceleyip onaylarsın: zengin animasyonlu onboarding,
+  store'a uygun paywall, reklam yerleşimleri, her durum, açık ve koyu tema.
 - **Uygulama yayınlatan kurallar.** Clean Architecture, 300 satır dosya sınırı,
   ilk günden i18n, çevrimdışı durumlar, zorunlu güncelleme, hesap silme,
   ATT + UMP onayı, privacy manifest ve store veri güvenliği cevapları.
@@ -40,9 +49,14 @@ bir standarttır. Her şeyi yerel **Proje Merkezi**'nden canlı izlersin.
   kanıtlanmış sorunları düzeltir, önce test kanallarına çıkarır ve çökme
   artışında kademeli yayını durdurur. Hepsini Proje Merkezi'nin Operasyon
   sekmesinden izlersin.
-- **Ne olduğunu hep bilirsin.** Proje Merkezi yol haritasını canlı gösterir ve
-  Claude'un senden tam olarak neye ihtiyacı olduğunu, her birini nereden
-  bulacağını adım adım listeler.
+- **Ayak işlerini Claude yapar.** Konsol kurulumları CLI'lar, MCP'ler ve
+  giriş yapmış tarayıcın üzerinden yürür. Anahtarlar indirmeden ya da
+  panodan doğrudan yerel bir gelen kutusuna gider, asla sohbetten geçmez.
+  Yalnızca gerçekten sana gereken işler (giriş, ödeme, doğrulama) İhtiyaç
+  Merkezi'ne düşer.
+- **Ne olduğunu hep bilirsin.** Proje Merkezi yol haritasını canlı gösterir,
+  Claude'un senden neye ihtiyacı olduğunu adım adım listeler ve Claude'un
+  senin yerine hallettiklerini işaretler.
 
 ## Ekran görüntüleri
 
@@ -81,23 +95,29 @@ Diğer kurulum yolları:
 
 ## Nasıl çalışır
 
-1. **İskelet.** Monorepo (`apps/mobile`, `apps/panel`, `apps/web`, ortak
-   `supabase/`), CLAUDE.md, kurallar ve Proje Merkezi oluşturulup
-   commit'lenir; private bir GitHub reposu bağlanır.
-2. **Araç kontrolü.** Supabase MCP, Firebase CLI, Chrome MCP ve RevenueCat
-   MCP kontrol edilir; eksikler istenir.
-3. **Bütün sorular tek seferde.** Web varlığı, diller, reklam ve bildirim
-   stratejisi, ASO/SEO kelimeleri ve iki mağazada kontrol edilmiş uygulama /
-   paket adı adayları. Gizli bilgiler sohbette asla istenmez; İhtiyaç
-   Merkezi'nden alınır.
-4. **Plan.** Bağımlılık grafiği ve paralel gruplarla detaylı fazlar.
-   Öngörülebilen her dış ihtiyaç hemen İhtiyaç Merkezi'nde açılır.
-5. **Geliştirme.** Fazlar paralel subagent'larda yürür. Her grup entegrasyon
+1. **Önce hafıza.** CLAUDE.md, kurallar, TODO.md ve Proje Merkezi her şeyden
+   önce oluşturulup commit'lenir.
+2. **Başlangıç görüşmesi.** Platformlar, backend, web, gelir modeli, diller,
+   hedef kitle, tasarım yaklaşımı ve v1 kapsamı; uyarlanan turlarda, önerilen
+   cevaplarla sorulur. Gizli bilgiler sohbette asla istenmez.
+3. **İskelet ve araçlar.** Yalnızca seçtiğin uygulamaları içeren bir
+   monorepo, private bir GitHub reposu ve yığınının gerektirdiği araçların
+   kontrolü.
+4. **Plan.** ASO araştırmasıyla bulunan, iki mağazada benzersiz uygulama adı
+   ve paket adı, kelimeler, reklam ve bildirim planları ve bağımlılık grafiği
+   ile paralel gruplu detaylı fazlar; tek turda onaylanır.
+5. **Önce Claude yapar.** Firebase, store konsolları, AdMob, RevenueCat ve
+   GitHub secret'ları CLI'lar, MCP'ler ve Chrome üzerinden kurulur. Yalnızca
+   gerçekten sana gereken işler İhtiyaç Merkezi'ne gider.
+6. **Tasarım.** Claude Design ile bir tasarım sistemi ve tüm ekranlar
+   Claude'da oluşturulur. Arayüz işi senin onayından sonra başlar; backend ve
+   release işleri bu sırada ilerler.
+7. **Geliştirme.** Fazlar paralel subagent'larda yürür. Her grup entegrasyon
    ve kural denetimiyle biter; ilerleme Proje Merkezi'nde canlı görünür.
-6. **Release.** `./release.sh mobile all internal` → test →
+8. **Release.** `./release.sh mobile all internal` → test →
    `./release.sh mobile all promote`. Web ve panel tag ile deploy edilir:
    `./release.sh web`.
-7. **Operasyon (isteğe bağlı).** Yerel bir günlük rutin kararlılığı,
+9. **Operasyon (isteğe bağlı).** Yerel bir günlük rutin kararlılığı,
    yorumları ve ASO'yu kontrol eder, rapor yazar ve kısa bir özet gönderir.
    Otonomi seviyesini sen seçersin; varsayılan, düzeltmeleri yalnızca test
    kanallarına çıkarır.
@@ -110,7 +130,7 @@ Diğer kurulum yolları:
 | `assets/repo/` | Monorepo iskeleti: `release.sh`, release scriptleri, değişen uygulamaya göre CI, tag ile deploy, pnpm workspace |
 | `assets/project-hub/` | Bağımlılıksız yerel web uygulaması: canlı yol haritası + İhtiyaç Merkezi (EN/TR arayüz) |
 | `assets/store-screenshots/` | Her dil × cihaz için Flutter çekimi + store boyutlarında çerçeveli görseller |
-| `assets/templates/` | Metadata/ASO doğrulamalı Fastfile, CLAUDE/PLAN/PHASE/TODO şablonları (EN + TR) |
+| `assets/templates/` | Metadata/ASO doğrulamalı Fastfile, CLAUDE/PLAN/PHASE/TODO, Claude Design brief'i ve günlük operasyon şablonları (EN + TR) |
 | `commands/kickoff.md` | `/zero-to-store:kickoff` komutu |
 
 ## Release komutları (projende)
@@ -146,11 +166,21 @@ kurallarıyla senkronla" demen yeterli.
 
 ## SSS
 
-- **Başka dillerde çalışır mı?** Claude seninle kendi dilinde konuşur. Kurallar
-  ve şablonlar İngilizce ve Türkçe gelir; proje dokümanları projenin dilini
-  izler.
+- **Başka dillerde çalışır mı?** Claude seninle soruları da dahil her mesajda
+  kendi dilinde konuşur ve dili CLAUDE.md'ye yazar, böylece sonraki
+  session'lar da korur. Kurallar ve şablonlar İngilizce ve Türkçe gelir;
+  proje dokümanları senin dilini izler.
 - **Her parçaya ihtiyacım var mı?** Hayır. Yalnızca istediğin uygulamalar
-  oluşturulur; web varlığı yoksa `apps/web` ve web workflow'u da olmaz.
+  oluşturulur. Web sitesi istemesen de küçük, yalnızca yasal sayfalardan
+  oluşan bir site (gizlilik, koşullar, destek, hesap silme) yayınlanır, çünkü
+  iki mağaza da bu URL'leri ister.
+- **Supabase kullanmak zorunda mıyım?** Hayır. Önerilen varsayılan Supabase
+  Cloud'dur; ama Supabase'i kendi sunucuna kurabilir, Firebase kullanabilir,
+  kendi API'ni getirebilir ya da backend'siz ilerleyebilirsin; kurallar buna
+  uyum sağlar (kurallar Bölüm 13.11).
+- **Claude benim yerime neyi yapamaz?** Giriş yapmak, şifre ya da 2FA kodu
+  yazmak, geliştirici hesabı açmak, ücret ödemek, kimlik doğrulamasından
+  geçmek ve CAPTCHA çözmek. Geri kalan her şeyi hazırlar ve tek onayla yapar.
 - **Anahtarlarım nereye gidiyor?** Bilgisayarındaki `hub/inbox/` klasörüne
   (asla commit'lenmez). Claude her değeri hedefine (env, GitHub Secrets,
   `fastlane/keys/`) taşır ve sonra inbox'tan siler.

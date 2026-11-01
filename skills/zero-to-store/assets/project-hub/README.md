@@ -57,6 +57,7 @@ edit the same file, but adding/updating records is still done by the **main sess
 | `warnings` | | Cautions (one-time download, delayed permission activation…) |
 | `createdAt` | | ISO date — used for sorting |
 | `processedAt`, `processedNote` | | When processed: what was done (NEVER write values) |
+| `processedBy` | | `claude` when Claude did the step itself (RULES.md Section 16.7); the hub then shows "Done by Claude". Leave it out when the user submitted the value |
 | `rejectReason` | | When rejected: why, and how to fix it |
 | `cancelReason` | | If it is no longer needed |
 
@@ -100,7 +101,9 @@ Before writing a new record, look at one and match its level of detail.
 7. **The first record is `store-accounts`.** No store action is taken until this record
    settles which Play and Apple accounts the app will be published from (RULES.md
    Section 12.8). Every record related to a store console reminds the user, with a
-   `warnings` item, to work in the correct account.
+   `warnings` item, to work in the correct account. With Chrome MCP connected, Claude
+   reads these values from the consoles itself and the user only confirms them in the
+   chat.
 8. **Records are opened ahead of time.** When the plan is approved, ALL foreseeable
    external needs of the phases (store accounts, API keys, console settings) are
    opened as records immediately, so the user can prepare before a phase arrives; do
@@ -108,6 +111,12 @@ Before writing a new record, look at one and match its level of detail.
 9. After adding a record, run `node hub/server.mjs --status` and leave no errors.
    Then announce it to the user in a single line:
    `Added to Needs Center: <title> — http://127.0.0.1:<port>/#/needs/<id>`
+10. **Claude does it first** (RULES.md Section 16.7). Before writing a record, try a
+   CLI, an MCP or Chrome MCP. If Claude did the step, still write the full record
+   (steps and fields included) with `status: "processed"`, `processedBy: "claude"` and
+   a `processedNote` saying what was done, so the user sees it in the hub and can redo
+   it by hand. A record left for the user says in `why` why only the user can do it
+   (a sign-in, a payment, a verification, a key only they can create).
 
 ## Processing submissions (at every phase transition and at session start)
 1. Run `node hub/server.mjs --status`. For each record in the **SUBMITTED** list:
@@ -117,7 +126,9 @@ Before writing a new record, look at one and match its level of detail.
    key work? If possible, actually try it (e.g. an FTP connection, an API call).
 4. **Move it to its target.** The value goes where the field's `target` says: `.env`,
    GitHub Secrets (`gh secret set`), `fastlane/keys/`, etc. During this, NEVER write
-   the value to the chat, a commit message, a log or the record file.
+   the value to the chat, a commit message, a log or the record file. Values Claude
+   fetched itself (downloaded key files, values copied with a console's Copy button)
+   wait in the same inbox and go through the same steps.
 5. **Update the record.**
    - On success: set `status: "processed"`, `processedAt`, and a `processedNote` with
      no values in it (e.g. "moved to fastlane/keys/, connection tested").

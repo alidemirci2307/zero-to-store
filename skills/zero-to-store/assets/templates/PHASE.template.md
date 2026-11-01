@@ -29,6 +29,7 @@
 - **Notifications:** payload route + tap target / none
 - **RLS/security:** affected tables / none
 - **Admin panel sync:** required panel screen / none
+- **Design:** artboards this phase implements (`docs/design/DESIGN.md`) / none
 - **Needed from the user:** Needs Center record ids (this phase in the `phases` field) / none
 - **Docs update:** docs/ files to update at the end of the phase
 

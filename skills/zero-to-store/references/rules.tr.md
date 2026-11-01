@@ -3,8 +3,10 @@
 > İLK İŞİN, başka her şeyden önce: bu kuralların tamamını docs/RULES.md
 > dosyasına yazmak, ona referans veren KISA bir CLAUDE.md (indeks, ≤400
 > satır), boş TODO.md ve Proje Merkezi'ni (hub/) kurmak (bkz. Bölüm 17.0 ve 16 —
-> sıralama ve dosya yapısı orada kesin olarak tanımlıdır). Ardından "Çalışma Şekli"
-> bölümündeki soruları bana sor ve proje iskeletini kur.
+> sıralama ve dosya yapısı orada kesin olarak tanımlıdır). Ardından Bölüm
+> 17.8–17.9'daki başlangıç görüşmesini yap (uyarlanan turlar, en iyi pratik
+> varsayılanlar) ve proje iskeletini seçtiklerime göre kur. Baştan sona
+> benim dilimde konuş (Bölüm 17.10).
 > Sonraki her session: önce CLAUDE.md, PLAN.md ve TODO.md'yi oku,
 > `node hub/server.mjs --status` çalıştır; biten fazları, sıradaki fazı,
 > bekleyen işleri ve benden beklenenleri (Proje Merkezi linkiyle)
@@ -19,25 +21,40 @@
 
 ## 1. Teknoloji Yığını
 
+- **Sabit ve seçilen:** mobil yığın, Firebase Analytics + Crashlytics ve
+  admin panel yığını SABİTTİR. Backend, web varlığı, hosting, admin panel,
+  gelir modeli, diller ve tasarım yaklaşımı başlangıç görüşmesinde
+  SEÇİLİR (Bölüm 17.8); asla varsayılmaz.
 - **Mobil:** Flutter (Dart). State management: Riverpod. Routing: go_router.
-- **Backend:** Supabase (Auth, Postgres DB, Edge Functions).
-  RLS (Row Level Security) baştan kurgulanır.
+- **Backend:** başlangıçta seçilir. Önerilen varsayılan: Supabase (Auth,
+  Postgres DB, Edge Functions, Realtime), Supabase Cloud ya da kullanıcının
+  kendi sunucusunda self-hosted Supabase; RLS (Row Level Security) baştan
+  kurgulanır. Alternatifler: Firebase (Auth, Firestore, Cloud Functions),
+  backend yok (veri cihazda kalır) ya da kullanıcının kendi API'si. Bu
+  doküman Supabase'e göre yazılmıştır; her seçimde neyin değiştiği Bölüm
+  13.11'dedir.
 - **Storage:** Dosya/medya depolama gerekiyorsa Cloudflare R2 kullanılır
   (S3 uyumlu API; egress ücretsiz). Supabase Storage yalnızca çok küçük ve
   basit ihtiyaçlar için değerlendirilir; seçim gerekçesiyle bana sunulur.
 - **Realtime (socket):** Gerçek zamanlı ihtiyaçlar için Supabase Realtime
   kullanılır; ayrı bir socket sunucusu veya üçüncü parti servis
   (Socket.IO, Pusher, Ably vb.) eklenmez.
-- **Firebase:** SADECE FCM (push), Crashlytics ve Analytics için kullanılır.
-  Backend verisi Firebase'e yazılmaz. (firebase-cli mevcut.)
-- **Admin Panel:** React + Vite + TypeScript + Tailwind CSS + shadcn/ui.
-- **Web:** Landing/statik sayfalar Hostinger paylaşımlı hosting'e deploy
-  edilir (Node çalışmaz; sadece statik/PHP). Deep link dosyaları
-  (`.well-known/assetlinks.json`, `apple-app-site-association`) buraya konur.
+- **Firebase:** projenin HER ZAMAN parçasıdır: Analytics ve Crashlytics
+  (KESİN, Bölüm 14), push için FCM, gerektiğinde Remote Config ve isteğe
+  bağlı Hosting. Backend verisi yalnızca seçilen backend Firebase ise
+  Firebase'e yazılır. (Firebase CLI ve FlutterFire CLI kullanılır.)
+- **Admin Panel:** React + Vite + TypeScript + Tailwind CSS + shadcn/ui;
+  proje panel içeriyorsa (Bölüm 7.1).
+- **Web:** başlangıçta seçilen hosting'e deploy edilir: Hostinger
+  paylaşımlı hosting (yalnızca statik/PHP; Node çalışmaz), Firebase
+  Hosting, Cloudflare Pages ya da kullanıcının kendi sunucusu. Deep link
+  dosyaları (`.well-known/assetlinks.json`, `apple-app-site-association`)
+  buraya konur. Web sitesi olmasa da yasal sayfalar yayınlanır (Bölüm 6.5).
 - **Repo:** TEK GitHub private reposu (monorepo), her uygulamanın AYRI
   sürümü, CHANGELOG'u, tag'i ve CI'ı vardır: `apps/mobile` (Flutter),
-  `apps/panel` (React), `apps/web` (landing/site), ortak `supabase/`,
-  `packages/`, `hub/`, `docs/`. Yapı, sürümleme ve tag kuralları Bölüm
+  `apps/panel` (React), `apps/web` (landing/site), ortak backend klasörü
+  (`supabase/`; Firebase backend'de `firebase/`), `packages/`, `hub/`,
+  `docs/`. Yalnızca başlangıçta seçilen uygulamalar bulunur. Yapı, sürümleme ve tag kuralları Bölüm
   15'tedir. Bu dokümanda geçen mobil yollar (`lib/`, `android/`, `ios/`,
   `fastlane/`, `integration_test/`, `tool/`, `pubspec.yaml`) `apps/mobile/`
   köküne, panel ve web yolları kendi `apps/<app>/` köküne göredir.
@@ -71,17 +88,128 @@
      altyapıya sahip kurulur; panel dili en az İngilizce içerir.
    - Cihaz dili desteklenmiyorsa varsayılan dil İngilizce'dir (proje
      yereldeyse bana sorulur). Dil yapısı CLAUDE.md'ye işlenir.
+   - Sağdan sola yazılan bir dil (Arapça, İbranice, Farsça, Urduca)
+     destekleniyorsa yerleşimler yöne duyarlı değerler kullanır
+     (start/end, `EdgeInsetsDirectional`), yön belirten ikonlar aynalanır
+     ve her ekran RTL'de kontrol edilir.
 
 ## 3. Tasarım Kuralları (KESİN)
 
-1. Sana bir tasarım dosyası (Claude Design vb.) verdiysem birebir ona uyulur.
-2. Tasarım verilmediyse: modern, animasyonlu, tema sistemine (renk/typography
-   token'ları) dayalı, kaliteli bir tasarım yapılır.
+1. Bir tasarım varsa — kullanıcının kendi dosyaları ya da linkleri veya
+   Claude Design'da onaylanan canvas (Bölüm 3.6) — birebir ona uyulur.
+2. Claude doğrudan kodda tasarlıyorsa (Bölüm 3.5, b yaklaşımı): modern,
+   animasyonlu, tema sistemine (renk/typography token'ları) dayalı ve
+   Bölüm 3.7–3.11'i karşılayan kaliteli bir tasarım yapılır.
 3. Tasarımda onboarding yoksa: uygulamanın ana özelliklerini anlatan,
    animasyonlu, temaya uygun bir onboarding eklenir (ilk açılışta bir kez
    gösterilir, tekrar gösterilmez).
 4. Splash ekranı: modern, animasyonlu, temaya uygun olur ve version name
    bilgisini gösterir (package_info_plus).
+5. Tasarım yaklaşımı başlangıç görüşmesinde seçilir (Bölüm 17.8) ve
+   `docs/DECISIONS.md`'ye yazılır:
+   - (a) Claude Design — ÖNERİLEN: uygulamanın tamamı, tek satır arayüz
+     kodu yazılmadan önce tasarlanır ve onaylanır (Bölüm 3.6).
+   - (b) Claude doğrudan kodda tasarlar (Bölüm 3.7–3.11); kullanıcı
+     çalışan uygulamayı inceler.
+   - (c) Kullanıcının kendi tasarımı (Figma, görseller, link) birebir
+     uygulanır.
+6. Claude Design akışı (a yaklaşımı). Claude Design, Claude'un içinde
+   "Design" ve "Design System" artifact türleri olarak yaşar; Claude Code
+   bunları Artifact aracıyla oluşturur (eski bağımsız claude.ai/design
+   sitesi kapanıyor; kullanıcı asla oraya yönlendirilmez):
+   - Brief: `docs/design/BRIEF.md`, skill'in `DESIGN_BRIEF.template.md`
+     şablonundan yazılır — ürün, hedef kitle, marka, rakiplerin görsel
+     dili, eksiksiz ekran envanteri ve akışlar, Bölüm 3.7–3.11'deki kalite
+     çıtası ve politika sınırları. Tasarımın tek kaynağıdır.
+   - Önce tasarım sistemi: marka token'larını (açık ve koyu renkler, yazı
+     ölçeği, boşluk, köşe yarıçapı, gölge, hareket süreleri ve eğrileri) ve
+     temel component'leri içeren bir "Design System" artifact'i.
+     Kullanıcının ya da kurumunun varsayılan tasarım sistemi varsa o
+     kullanılır.
+   - Sonra tek bir "Design" canvas'ı: envanterdeki her ekran, her
+     durumuyla, telefon artboard'ları (390×844) olarak, akış başına
+     gruplanmış; ana yolculuk (onboarding → paywall → ilk değer) için
+     prototip bağlantılarıyla.
+   - Onay kapısı: kullanıcı linkleri Claude'da inceler ve yorum bırakır;
+     Claude yorumları kullanıcı onaylayana kadar uygular. Arayüz fazları
+     ancak onaydan sonra başlar; backend, altyapı, CI/CD, release ve store
+     kurulum fazları bu sırada ilerler (Bölüm 17.7). Artifact linkleri ve
+     onay tarihi `docs/design/DESIGN.md`'ye yazılır.
+   - Aktarım: onaylanan token'lar tek tema kaynağı olur (Flutter tema
+     token'ları, panel ve web'in Tailwind ayarı) ve her ekran kendi
+     artboard'una birebir uyacak şekilde kodlanır. Store görselleri
+     (Bölüm 11.3) ve landing page aynı token'ları kullanır.
+   - Kullanılamıyorsa (Claude Code bir claude.ai hesabıyla giriş yapmamış
+     ya da Team/Enterprise sahibi Artifacts ve Design systems'i
+     açmamışsa): kullanıcıya nasıl açacağı anlatılır; olmazsa aynı brief
+     Claude uygulamasında çalıştırılır ve kullanıcı artifact linkini
+     paylaşır, o da olmazsa proje (b) yaklaşımına geçer.
+7. Tasarım kalite çıtası (her yaklaşımda; tam kontrol listesi brief'tedir):
+   - Özgün: marka ve hedef kitleden doğan, adı konmuş bir görsel konsept;
+     şablon ya da hazır kit görüntüsü yok; özel illüstrasyon ve ikon
+     stili; kendinden emin tipografi.
+   - Zengin hareket: her etkileşimli öğede mikro etkileşimler, anlamlı
+     ekran geçişleri, animasyonlu onboarding ve başarı anları (Lottie ya
+     da Rive), iskelet yükleyiciler. Süreleri ve eğrileri hareket
+     token'ları belirler. Hareket akıcı kalır (düşük seviye Android'de
+     60 fps, Bölüm 4.5) ve sistemin "hareketi azalt" ayarına sakin bir
+     alternatifle uyar.
+   - Eksiksiz: her ekran her durumuyla (yükleniyor, boş, hata, çevrimdışı,
+     başarılı), açık ve koyu temada, desteklenen en uzun dilde ve varsa
+     RTL'de, küçük ve büyük telefonlarda, destekleniyorsa tabletlerde;
+     ayrıca sistem ekranları (splash, zorunlu güncelleme, bağlantı yok),
+     izin ön ekranları ve ayarlar (dil, yasal linkler, satın alımları geri
+     yükle, hesabı sil).
+8. Onboarding zengin ve dönüşüm odaklıdır:
+   - Özellik listesi yerine ana değeri iş başında gösteren 3–6 animasyonlu
+     adım; ilerleme göstergesi ve akışı bozmadığı yerde atla seçeneği.
+   - Cevapları deneyimi gerçekten değiştiren (ve sonra kullanılan)
+     kişiselleştirme soruları; paywall'dan önce bağlılık oluşturur.
+   - Sistem izin pencerelerinden önce, faydayı anlatan izin ön ekranları
+     (bildirim, ATT, kamera…), değer anında gösterilir (Bölüm 8.3, 9.2).
+   - Abonelik varsa onboarding paywall ile biter (Bölüm 3.9). Her adım
+     Bölüm 14.4'teki onboarding event'lerini atar; adım adım kayıp
+     ölçülebilir.
+9. Paywall ve premium — store politikalarına uygun ve dönüştürmek için
+   tasarlanmış (Apple 3.1.1–3.1.2, Google Play Ödemeler ve Abonelik
+   politikaları):
+   - Faturalanacak tutar ve dönem en belirgin fiyat öğesidir; haftalık ya
+     da aylık karşılıklar ikincildir. Ücretsiz deneme; süresini,
+     sonrasında ne olacağını (otomatik yenileme, fiyat, tarih) ve nasıl
+     iptal edileceğini satın almadan önce açıkça yazar.
+   - Satın alımları geri yükle ile Kullanım Koşulları (EULA) ve Gizlilik
+     Politikası linkleri paywall'dadır. Fiyatlar store'dan gelir,
+     yerelleştirilmiştir, asla koda gömülmez.
+   - Yasak: gizlenen ya da geciktirilen kapatma butonu, sahte geri sayım
+     ya da kıtlık, ucuz seçenekleri gizleyen önceden seçili seçenekler,
+     koşulları yanında yazmadan ücretli olacak bir şey için "ücretsiz"
+     demek, utandırarak vazgeçirme (confirmshaming) ve ana bir işi
+     paywall ile bölmek.
+   - Bu kurallar içinde dönüşüm: ikonlu somut faydalar, açıkça işaretli
+     önerilen plan (ör. tasarrufuyla yıllık), deneme varsa deneme zaman
+     çizelgesi, tek ana çağrı butonu, yalnızca gerçekse sosyal kanıt.
+   - Giriş noktaları: onboarding sonu, premium özelliklere dokunuşlar ve
+     ayarlar. Premium ekranı planı, yenileme tarihini, geri yüklemeyi ve
+     aboneliği store'da yönetme linkini gösterir. Paywall varyantları
+     RevenueCat offering'leri ve deneyleriyle yürür (Bölüm 14.10).
+10. Tasarımda reklamlar (yalnızca gelir modelinde reklam varsa):
+   - Yerleşim planındaki (Bölüm 8.5) her reklam alanı tasarımda çizilir;
+     yerleşim reklamlarıyla birlikte incelenir: içerik ya da kontrollerle
+     çakışma yok, dokunma hedeflerinden güvenli mesafe, native
+     reklamlarda "Reklam" etiketi.
+   - Onboarding, paywall, satın alma, ayarlar, hesap silme ve izin
+     ekranlarında reklam yok. Geçiş reklamları yalnızca doğal molalarda,
+     frekans sınırıyla — asla açılışta ya da çıkışta, asla alakasız bir
+     kontrole dokunulduktan hemen sonra değil. Ödüllü reklamlar her zaman
+     isteğe bağlıdır ve ödülü önce söyler.
+   - Premium tüm reklamları kaldırır (Bölüm 8.7); "Reklamları kaldır"
+     premium faydası olarak gösterilir.
+11. Tasarımla bağlılık (retention): ana ekran her zaman bir sonraki faydalı
+   adımı gösterir, boş durumlar ilk değer anına götürür, ürüne uyduğu
+   yerde ilerleme, seri (streak) ya da başarımlar kullanılır, başarı anları
+   kutlanır (Bölüm 8.10'daki puan isteği de buraya yakışır) ve içerik
+   kişiselleştirilir. Bağlılık D1/D7/D30 kohortlarıyla ölçülür (Bölüm
+   14.10).
 
 ## 4. Mobil Davranış Kuralları (KESİN)
 
@@ -129,6 +257,19 @@
    area, back davranışı, Apple/Google giriş akışları) her iki tarafta da
    kontrol edilir. Test edilemeyen bir durum varsa (ör. gerçek cihaz
    gerektiren özellik) bana bildirilir.
+7. Erişilebilirlik "bitti"nin parçasıdır: metin %200'e kadar kırpılmadan ve
+   üst üste binmeden büyür; yalnızca ikon olan kontrollerin ve anlamlı
+   görsellerin semantik etiketi vardır; metin kontrastı en az 4.5:1'dir;
+   dokunma hedefleri en az 48 dp / 44 pt'dir; sistemin "hareketi azalt"
+   ayarına uyulur; ana akışlar bir kez TalkBack ve VoiceOver ile kontrol
+   edilir. App Store Connect'teki erişilebilirlik beyanları bu kontrollere
+   göre dürüstçe cevaplanır.
+8. Platform gereksinimleri güncel tutulur: `targetSdkVersion` Google
+   Play'in güncel hedef API seviyesi şartını karşılar, native kütüphaneler
+   16 KB bellek sayfalarını destekler (Android 15+ hedefleyen
+   uygulamalarda zorunlu) ve iOS build'leri App Store Connect'in o an
+   istediği Xcode/SDK sürümüyle alınır. Bunlar her release'ten önce
+   kontrol edilir; eksik, ret yedikten sonra değil, yayından önce giderilir.
 
 ## 5. Kimlik Doğrulama Kuralları (KESİN)
 
@@ -148,12 +289,22 @@
      kullanıcıya ait veriler silinir/anonimleştirilir, R2'deki dosyaları
      temizlenir, device token'ları kaldırılır. İşlem service role ile
      Edge Function üzerinden yapılır (istemci service role GÖREMEZ).
+   - Sign in with Apple kullanılıyorsa kullanıcının Apple token'ları silme
+     işleminin parçası olarak Apple'ın REST API'si ile iptal edilir (Apple
+     zorunluluğu).
    - Aktif aboneliği olan kullanıcıya, silmeden önce aboneliğini store
      üzerinden iptal etmesi gerektiği bilgisi gösterilir.
    - Web'deki hesap silme sayfası da bu akışı tarif eder (store
      zorunluluğu). Akış CLAUDE.md'ye işlenir.
 6. Auth akışları (ilk giriş, oturum yenileme, çıkış, hesap silme) ve
    provider ayar bilgileri CLAUDE.md'ye işlenir.
+7. Uygulamanın hesaba hiç ihtiyacı olup olmadığına başlangıçta karar
+   verilir (Bölüm 17.8). Ana özellikler hesapsız çalışıyorsa kullanıcı
+   giriş yapmadan başlar (misafir modu) ve girişe yalnızca hesaba bağlı bir
+   özelliği (senkronizasyon, birden çok cihazda premium, sosyal özellikler)
+   ilk kullandığında davet edilir: Apple 5.1.1(v), önemli hesap
+   özellikleri olmadan girişi zorunlu tutan uygulamaları reddeder. Backend
+   yoksa hesap da yoktur.
 
 ## 6. Web Varlığı Kuralları (KESİN)
 
@@ -163,26 +314,48 @@
      iletişim)
    - Tam web sitesi (uygulamanın web versiyonu / çok sayfalı site)
    - İkisi birden
+   - Hiçbiri: web sitesi yok, yalnızca store'ların istediği yasal sayfalar
+     (Bölüm 6.5)
    Cevap alınmadan web tarafı için hiçbir plan ve kod yazılmaz.
 2. Landing page: statik (HTML/CSS/JS veya React static build), modern,
-   animasyonlu, temaya uygun yapılır ve Hostinger'a deploy edilir.
+   animasyonlu, temaya uygun yapılır ve başlangıçta seçilen hosting'e
+   deploy edilir (Bölüm 1).
    Gizlilik politikası, KVKK/Privacy, hesap silme sayfası ve deep link
    dosyaları da burada barındırılır.
 3. Tam web sitesi istenirse kapsamı ve teknolojisi ayrıca netleştirilerek
    plan sunulur, onay sonrası kodlanır.
 4. Verilen karar CLAUDE.md'ye işlenir.
+5. Web sitesi olmasa da zorunlu sayfalar bulunur: store'lar gizlilik
+   politikası URL'si, destek URL'si (App Store), hesap silme sayfası
+   (Google Play, hesap varsa) ve abonelik varsa Kullanım Koşulları (EULA;
+   Apple'ın standart EULA'sına link verilebilir) ister. Kullanıcı web
+   sitesi istemiyorsa `apps/web` yalnızca-yasal modda kurulur — her
+   uygulama dilinde gizlilik, koşullar, destek ve hesap silme sayfaları,
+   deep link kullanılıyorsa deep link dosyaları — ve ücretsiz bir
+   hosting'e deploy edilir (varsayılan: projenin Firebase projesinde
+   Firebase Hosting). Bu modda landing ya da SEO sorusu sorulmaz; Bölüm
+   10'un yalnızca temelleri uygulanır (HTTPS, mobil uyum, sayfa başına
+   başlık ve açıklama).
 
 ## 7. Admin Panel Kuralları (KESİN)
 
-1. Projenin bir admin paneli MUTLAKA yapılır. Teknoloji: React + Vite +
-   TypeScript + Tailwind + shadcn/ui. Tablolar için TanStack Table,
-   grafikler için Recharts, backend için Supabase JS SDK.
+1. Admin panele başlangıç görüşmesinde karar verilir (Bölüm 17.8).
+   Uygulamanın yönetilecek kullanıcısı, verisi ya da içeriği olan bir
+   backend'i varsa önerilir ve varsayılandır; backend yoksa panel de
+   yoktur. Kullanıcı istemezse yönetim backend konsolundan (Supabase
+   Studio, Firebase konsolu) ve Firebase Remote Config / Messaging
+   üzerinden yapılır, karar `docs/DECISIONS.md`'ye yazılır. Teknoloji:
+   React + Vite + TypeScript + Tailwind + shadcn/ui. Tablolar için
+   TanStack Table, grafikler için Recharts, backend için backend'in JS
+   SDK'sı.
 2. Panel de Bölüm 2'deki mimari kurallara tabidir (SOLID, Clean Arch,
    300 satır limiti, base yapılar, ortak component'ler).
-3. Deploy hedefi işe başlamadan önce BANA SORULUR:
-   - Hostinger bilgilerini (FTP/panel erişimi) verdiysem oraya deploy
-     edilir (statik build + SPA routing için `.htaccess` rewrite).
-   - Vermediysem Firebase Hosting kullanılır.
+3. Deploy hedefi başlangıç görüşmesinde, web hosting'iyle birlikte seçilir
+   (Bölüm 17.8):
+   - Hostinger: statik build + SPA routing için `.htaccess` rewrite.
+   - Firebase Hosting: ücretsiz; kullanıcının tercihi yoksa varsayılan.
+   - Cloudflare Pages ya da kullanıcının kendi sunucusu (ör. Coolify): aynı
+     tag tetiklemeli düzende bir `deploy-<app>-<hedef>.yml` (Bölüm 12.6).
    Karar verilmeden panel deploy planı yapılmaz.
 4. Panel eksiksiz olur — uygulama TAMAMEN panelden yönetilebilir olmalıdır:
    - Dashboard: temel metrikler ve özet istatistikler
@@ -195,8 +368,9 @@
      hedef ekran seçimi, dil bazlı metin, zamanlama)
    - Uygulama ayarları (uzaktan yönetilebilir config değerleri)
    - Loglar / son aktiviteler görünümü
-5. Panel girişi Supabase Auth ile yapılır; admin yetkisi RLS + rol
-   tablosuyla korunur. Panele mobil kullanıcılar asla erişemez.
+5. Panel girişi backend'in auth'u ile yapılır (Supabase Auth; diğer
+   backend'ler için Bölüm 13.11); admin yetkisi RLS + rol tablosuyla
+   korunur. Panele mobil kullanıcılar asla erişemez.
 6. Uygulamaya yeni bir özellik eklendiğinde panel tarafındaki yönetim
    ekranı da eklenir; bu senkron kuralı CLAUDE.md'de kalıcı olarak durur.
 
@@ -205,9 +379,9 @@
 1. Mobil uygulama Apple App Review Guidelines ve Google Play Policy'ye
    TAM UYUMLU planlanır ve kodlanır. Her özellik planlanırken policy
    kontrolü yapılır; riskli bir durum varsa kodlamadan önce bana bildirilir.
-2. Reklamlar AdMob ile yönetilir ve AdMob politikalarına kesinlikle uyulur
-   (yanlışlıkla tıklamaya zorlama yok, kapatma butonunu gizleme yok,
-   politika dışı yerleşim yok).
+2. Gelir modelinde reklam varsa (Bölüm 8.11) reklamlar AdMob ile yönetilir
+   ve AdMob politikalarına kesinlikle uyulur (yanlışlıkla tıklamaya zorlama
+   yok, kapatma butonunu gizleme yok, politika dışı yerleşim yok).
 3. Reklam izin/consent akışları ZORUNLUDUR ve baştan kurulur:
    - iOS — ATT (App Tracking Transparency): reklam kimliğine erişim öncesi
      ATT izni istenir; `NSUserTrackingUsageDescription` metni Info.plist'e
@@ -217,8 +391,9 @@
      reklam gösterilir.
    - GDPR/UK — Google UMP SDK: Avrupa/Birleşik Krallık kullanıcılarına ilk
      açılışta consent formu gösterilir; reklamlar consent alınmadan
-     YÜKLENMEZ. AdMob panelinde GDPR mesajı yapılandırması gerektiği bana
-     hatırlatılır. Consent durumuna göre kişiselleştirilmiş /
+     YÜKLENMEZ. AdMob panelindeki GDPR mesajını Claude kendisi
+     yapılandırır (Chrome MCP, Bölüm 16.7); yapamazsa İhtiyaç Merkezi
+     kaydıyla bana hatırlatılır. Consent durumuna göre kişiselleştirilmiş /
      kişiselleştirilmemiş reklam ayrımı otomatik yönetilir.
    - Bu akışların sırası doğru kurgulanır: UMP consent → ATT izni →
      reklam SDK başlatma. Akış CLAUDE.md'ye işlenir.
@@ -250,19 +425,22 @@
      uygulama göstermemelidir. Kesin kontrol, Play Console'da uygulama ve
      Apple Developer'da Identifier oluşturulurken yapılır.
    - Onaylanan ad ERKENDEN rezerve edilir: App Store Connect'te uygulama
-     kaydı ve Play Console'da uygulama oluşturulur (İhtiyaç Merkezi
-     kaydıyla, doğru hesapta — Bölüm 12.8).
+     kaydı ve Play Console'da uygulama doğru hesapta (Bölüm 12.8)
+     oluşturulur — Bölüm 16.7'deki toplu onaydan sonra Claude tarafından
+     Chrome MCP ile, yapamazsa İhtiyaç Merkezi kaydıyla.
    - Store'a bir kez gittikten sonra paket adı DEĞİŞTİRİLEMEZ. Onaylanan
      ad ve id `docs/ASO.md`'ye yazılır ve CLAUDE.md'den referanslanır.
-5. Reklam stratejisi geliri MAKSİMİZE edecek şekilde planlanır. Uygun olan
-   her format değerlendirilir: banner, interstitial (geçiş), rewarded
+5. Reklam varsa reklam stratejisi geliri politika sınırları içinde
+   (Bölüm 3.10) MAKSİMİZE edecek şekilde planlanır. Uygun olan her format
+   değerlendirilir: banner, interstitial (geçiş), rewarded
    (ödüllü), rewarded interstitial, native ve app open ad. Hangi ekranda
    hangi formatın kullanılacağı bir "reklam yerleşim planı" olarak sunulur
    ve onayım alınır. Frekans sınırları (ör. app open için cooldown)
    policy'ye uygun ayarlanır.
 6. Uygulama içi satın almalar ve abonelikler RevenueCat üzerinden yönetilir
-   (App Store + Play Store tek merkezden). Paywall tasarımı store
-   kurallarına uygun olur (fiyat, süre, iptal bilgisi açıkça yazar).
+   (App Store + Play Store tek merkezden). Paywall store kurallarına uygun
+   olur (fiyat, süre, iptal bilgisi açıkça yazar; kuralların tamamı Bölüm
+   3.9'dadır).
 7. Premium/abone kullanıcılara reklam GÖSTERİLMEZ; reklam katmanı
    RevenueCat entitlement kontrolüne bağlı çalışır.
 8. Reklam ve satın alma yapısı (ad unit id yönetimi, entitlement isimleri,
@@ -298,6 +476,20 @@
      olduğundan yapılmaz.
    - İsteme sıklığı sınırlanır (OS zaten kota koyar); hangi olaydan sonra
      istendiği CLAUDE.md'ye işlenir.
+11. Gelir modeli başlangıçta seçilir (Bölüm 17.8): reklamlı ücretsiz,
+   freemium (abonelik + ücretsiz kullanıcıya reklam), yalnızca abonelik,
+   tek seferlik satın alma, ücretli uygulama ya da hiçbiri. Yalnızca
+   seçilen parçalar kurulur: reklam yoksa AdMob, ATT izni ve reklam
+   yerleşim planı yoktur; satın alma yoksa RevenueCat ve paywall yoktur.
+   Gizlilik beyanları gerçekte kullanılana göre yapılır (Bölüm 8.9).
+12. Hedef kitle: kitlede çocuk olup olmadığı başlangıçta sorulur. Varsa
+   Google Play Aile politikası (yalnızca Aile sertifikalı reklam SDK'ları,
+   kişiselleştirilmiş reklam yok) ve Apple'ın Çocuklar kategorisinde 1.3
+   kuralı (üçüncü taraf reklam yok, analitik yalnızca Apple'ın izin
+   verdiği sınırlarda, link ve satın almalardan önce ebeveyn kapısı),
+   herhangi bir SDK eklenmeden önce planı belirler; Bölüm 14'teki analitik
+   kurulumu bu sınırlara uyarlanır ve ödünleşim `docs/DECISIONS.md`'ye
+   yazılır.
 
 ## 9. Push Bildirim Kuralları (KESİN)
 
@@ -403,8 +595,10 @@
    kampanya parametresi taşır (Apple `pt`/`ct`, Play `referrer` + UTM).
    Deep link dosyaları doğru content-type ile sunulur (Bölüm 6.2).
 11. Search Console + Bing Webmaster Tools kurulur: alan adı doğrulanır
-   (tercihen DNS TXT) ve sitemap gönderilir. Gerekli erişim/doğrulama
-   İhtiyaç Merkezi kaydıyla istenir (Bölüm 16.6). Yayından sonra kapsam
+   (tercihen DNS TXT) ve sitemap gönderilir. Doğrulamayı Claude kendisi
+   yapar — DNS kaydını DNS sağlayıcısının API'si ya da MCP'siyle,
+   konsolları Chrome MCP ile (Bölüm 16.7) — ve yalnızca erişemediği için
+   İhtiyaç Merkezi kaydı açar. Yayından sonra kapsam
    ve hata raporları kontrol edilir.
 12. Web analitiği ve çerezler: çerezsiz bir analitik aracı (Plausible,
    Umami vb.) ya da GA4 + Consent Mode v2 kullanılır. Zorunlu olmayan
@@ -548,7 +742,9 @@
      * iOS: App Store'a metadata + görsellerle yüklenir, precheck'ten
        geçer ve incelemeye gönderilir. Onaydan sonra yayın elle yapılır
        (`automatic_release: false`).
-   - Tek seferlik store gerçekleri (İhtiyaç Merkezi kaydı ile yapılır):
+   - Tek seferlik store adımları (Bölüm 16.7'deki toplu onaydan sonra
+     Claude Chrome MCP ile yapar; yalnızca yapamadıkları için İhtiyaç
+     Merkezi kaydı açılır):
      * Play Console'da uygulama oluşturulur ve İLK AAB elle yüklenir;
        API, uygulama Play'de en az bir kez sürüm almadan çalışmaz.
        Uygulama hiç yayınlanmamışsa (draft app) script sürümü "draft"
@@ -623,7 +819,8 @@
    - iOS imzalama: Xcode projesinde (Runner target) "Automatically manage
      signing" açık ve Team seçili olur; release, App Store Connect API
      key'i ile `-allowProvisioningUpdates` kullanarak sertifika/profili
-     kendisi yönetir. Apple Developer Team ID İhtiyaç Merkezi üzerinden istenir.
+     kendisi yönetir. Apple Developer Team ID `store-accounts` kaydından
+     gelir (Bölüm 12.8).
    - Fastlane `Gemfile` ile sabitlenir (`bundle exec fastlane`);
      `Gemfile` ve `Gemfile.lock` commit'lenir.
 6. Web otomatik deploy ZORUNLUDUR ve SÜRÜMLÜDÜR (GitHub Actions):
@@ -648,6 +845,11 @@
      `htaccess-spa.template` → `apps/<app>/public/.htaccess`).
    - Firebase Hosting hedefi: build → Firebase Hosting `live` kanalı
      (service account JSON Actions Secrets'ta).
+   - Diğer uygulama/hedef çiftleri (ör. web uygulaması Firebase Hosting'de,
+     Cloudflare Pages, kullanıcının kendi sunucusu): en yakın şablon
+     kopyalanıp uyarlanır (`deploy-panel-firebase.yml`'den
+     `deploy-web-firebase.yml`); tag tetikleyicisi, rollback girdisi ve
+     dist.zip yedeği korunur.
    - Workflow kurulduğunda ilk deploy'da doğrulanır ve süreç
      `docs/CICD.md`'ye işlenir.
 7. Release süreci (komutlar, track'ler, versiyonlama şeması, changelog
@@ -660,6 +862,11 @@
      `/developers/<ID>/`) ve Apple takım adı + Team ID. Bunlar
      `docs/RELEASE.md`'ye yazılır. Bu kayıt işlenmeden HİÇBİR store
      işlemi (uygulama oluşturma, yükleme, metadata, test grubu) yapılmaz.
+   - Chrome MCP bağlıysa bu kaydı Claude kendisi doldurur (Bölüm 16.7):
+     Play geliştirici ID'sini ve adını, Apple takım adını ve Team ID'yi
+     giriş yapılmış konsollardan okur, sohbette gösterir ve yayının bu
+     hesaplardan yapılacağını kullanıcıya onaylatır. Kayıt ancak
+     kullanıcının "evet"inden sonra işlenir.
    - Chrome MCP ile bir store konsolu açıldığında birden fazla Google
      hesabı (`/u/0`, `/u/1`…), birden fazla Play geliştirici hesabı veya
      birden fazla App Store Connect takımı görünürse Claude HİÇBİR İŞLEM
@@ -724,7 +931,8 @@
    `{entity}/{id}/{dosya}` düzeninde tutulur ve yapı CLAUDE.md'ye işlenir.
    R2 erişim anahtarları secrets olarak yönetilir; API üzerinden imzalama
    Edge Function'da yapılır, anahtar istemciye asla gönderilmez.
-9. Supabase free tier uyku önlemi: proje 7 gün istek almazsa Supabase
+9. Supabase Cloud ücretsiz plan uyku önlemi (self-hosted Supabase ve
+   diğer backend'lerde gerekmez): proje 7 gün istek almazsa Supabase
    tarafından duraklatılır. Bunu önlemek için GitHub Actions'ta zamanlanmış
    (cron, günde 1 kez) bir keep-alive workflow kurulur; hafif bir tabloya
    basit bir select isteği atar. Supabase URL ve anon key workflow'a
@@ -742,6 +950,43 @@
      content-type kısıtı ile birlikte imzalanır.
    - Service role key SADECE Edge Function ortam değişkeninde yaşar;
      istemciye, loglara veya hata mesajlarına asla sızmaz.
+11. BACKEND SEÇENEKLERİ: bu doküman Supabase'e göre yazılmıştır (Bölüm 1).
+   Başka bir backend'de her Supabase terimi aşağıdaki karşılığıyla okunur
+   ve hedefler aynı kalır: yetkilendirme veri katmanında, şema ve kurallar
+   kod olarak, istemcide ayrıcalıklı anahtar yok, yedekler, rate limit.
+   - Supabase Cloud: kullanıcılara yakın bölge (ör. Türkiye ve AB için
+     Frankfurt), ücretsiz planda Bölüm 13.9'daki keep-alive, herhangi bir
+     e-posta gönderiliyorsa yayından önce özel SMTP (yerleşik gönderici
+     çok sıkı sınırlıdır) ve planın yedek seviyesinin kullanıcıya
+     söylenmesi.
+   - Self-hosted Supabase (kullanıcının kendi sunucusu, ör. Coolify ya da
+     Docker): `API_EXTERNAL_URL`, `SITE_URL` ve yönlendirme URL'leri
+     herkese açık HTTPS domainine ayarlanır (yoksa auth linkleri iç adresi
+     gösterir); özel SMTP; Postgres ve pooler portları asla yayınlanmaz
+     (Docker, UFW gibi sunucu güvenlik duvarlarını atlatır — yalnızca
+     22/80/443 açık bir sağlayıcı güvenlik duvarı kullanılır); güçlü,
+     üretilmiş secret'lar repo dışında tutulur; her gece sunucu dışına
+     `pg_dump` + Storage yedeği, test edilmiş geri yükleme ve hata
+     uyarısıyla; küçük sunucularda kullanılmayan servisler (analytics,
+     vector, pooler) kapatılır; keep-alive gerekmez. Sunucu erişimi
+     İhtiyaç Merkezi kaydıyla gelir (SSH host ve kullanıcı, anahtarla) —
+     sohbette asla şifre istenmez.
+   - Firebase backend: RLS → CI'da emülatörle test edilen Firestore
+     Security Rules; migration'lar → `firebase/` altında kod olarak
+     kurallar ve index'ler, CI ile deploy; Edge Functions → Cloud
+     Functions (Blaze plan, bütçe uyarısıyla); `app_config` → Remote
+     Config; `device_tokens` → bir Firestore koleksiyonu; App Check açık;
+     admin panel → admin custom claim'li Firebase Auth. Bu bölümün
+     Postgres'e özgü maddeleri uygulanmaz; sorgu, index ve sayfalama
+     hedefleri uygulanır.
+   - Backend yok: veri cihazda kalır (drift/sqflite, hassassa
+     şifrelenmiş); hesap, hesap silme akışı ve admin panel yoktur; zorunlu
+     güncelleme ve uzaktan ayarlar Firebase Remote Config ile; push FCM
+     topic'leri ya da yerel bildirimlerle; RevenueCat kendi backend'i
+     olmadan çalışır (anonim ID'ler + satın alımları geri yükle).
+   - Kullanıcının kendi API'si: kullanıcı yığını söyler ve erişimi İhtiyaç
+     Merkezi üzerinden verir; Claude önce bir OpenAPI sözleşmesi yazar ve
+     istemcileri ondan üretir; aynı güvenlik hedefleri geçerlidir.
 
 ## 14. İzleme — Crash ve Analytics (KESİN)
 
@@ -750,6 +995,13 @@
    bırakılmaz) ve her iki platformda da (Android + iOS) çalıştığı, test
    crash'i ve test event'i konsola düşürülerek DOĞRULANIR. Doğrulanmadan
    kurulum "bitti" sayılmaz.
+   Hangi backend seçilmiş olursa olsun kurulumu Claude kendisi yapar:
+   Firebase projesi Firebase CLI ile oluşturulur (Bölüm 16.7'deki toplu
+   onaydan sonra), uygulamalar `flutterfire configure` ile kaydedilip
+   yapılandırılır, release build'ler Crashlytics sembol yüklemesiyle
+   `--obfuscate --split-debug-info` kullanır ve iOS dSYM'leri yüklenir.
+   Yalnızca giriş yapmak (`firebase login`) kullanıcıya aittir. Temel
+   altyapı fazı bu olmadan tamamlanmış sayılmaz.
 2. Crashlytics kapsaması TAM olur: yakalanmamış TÜM hatalar (Flutter
    framework hataları, async/zone hataları, platform/native hatalar)
    Crashlytics'e raporlanır. try-catch ile yakalanan ama önemli hatalar da
@@ -789,9 +1041,10 @@
    değiştirilir.
 6. Event listesi ve parametreleri CLAUDE.md'de tablo olarak tutulur ve
    HER ZAMAN günceldir; yeni özellik eklenince event'leri de aynı işte
-   eklenir — event'siz özellik merge edilmez. Kritik dönüşüm event'leri
-   (satın alma funnel'ı) Firebase'de conversion olarak işaretlenmesi
-   gerektiği bana hatırlatılır.
+   eklenir — event'siz özellik merge edilmez. Kritik dönüşüm event'lerini
+   (satın alma funnel'ı) Firebase'de Claude kendisi key event olarak
+   işaretler (Chrome MCP, Bölüm 16.7); yapamazsa İhtiyaç Merkezi kaydıyla
+   bana hatırlatılır.
 7. User property'leri de ayarlanır: abonelik durumu (free/premium),
    uygulama dili, onboarding tamamlandı mı, bildirim izni durumu —
    böylece her analiz bu kırılımlarla yapılabilir.
@@ -801,6 +1054,12 @@
 9. Bu veriler reklam yerleşimi, paywall ve onboarding optimizasyonu için
    kullanılır; önemli funnel'larda (paywall görüntüleme → satın alma,
    onboarding başlama → tamamlama) dönüşüm izlenebilir olmalıdır.
+10. Büyüme deneyleri: onboarding ve paywall değişiklikleri tahminle değil
+   testle yapılır. Arayüz ve onboarding varyantları Firebase Remote Config
+   + A/B Testing ile, fiyat ve teklifler RevenueCat Experiments ile yürür;
+   her seferinde tek değişiklik, Bölüm 14.4'teki funnel event'leri ve
+   D1/D7/D30 bağlılığıyla değerlendirilir. Deneyler ve sonuçları
+   `docs/ANALYTICS.md`'ye yazılır.
 
 ## 15. Test, Git, Repo ve Sürümleme Kuralları (KESİN)
 
@@ -877,7 +1136,10 @@
    - main'e force-push yapılmaz. Release yalnızca temiz bir main'den ve
      origin/main'i içeren bir HEAD'den alınır; script bunu zorunlu tutar.
    - GitHub'da main için branch koruması (force-push/silme yasağı, CI
-     zorunlu) önerilir; ayarı kullanıcı yapar (İhtiyaç Merkezi kaydı).
+     zorunlu) önerilir. Claude bunu Bölüm 16.7'deki toplu onaydan sonra
+     `gh api` ile ayarlar; GitHub bunu private repolarda yalnızca ücretli
+     planlarda sunduğundan ücretsiz planda bunun yerine
+     `docs/DECISIONS.md`'ye yazılır.
 10. GitHub reposu kickoff'ta oluşturulur: kullanıcının onayıyla
    `gh repo create <ad> --private --source . --push`. `gh` yoksa ya da
    oturum kapalıysa İhtiyaç Merkezi kaydı açılır. Repo bağlanana kadar
@@ -918,7 +1180,10 @@
      `docs/ASO.md` (ad/id kararı, kelime tabloları, metinler, görsel
      mesajları, deneyler, ASO günlüğü), `docs/SEO.md` (kelime-sayfa
      eşlemesi, Lighthouse sonuçları, Search Console notları), `docs/OPS.md`
-     (yayın sonrası operasyon kurulumu ve otonomi seviyesi, Bölüm 18)
+     (yayın sonrası operasyon kurulumu ve otonomi seviyesi, Bölüm 18),
+     `docs/PRODUCT.md` (başlangıç cevapları: fikir, hedef kitle, v1
+     kapsamı, yığın seçimleri), `docs/design/` (tasarım brief'i ve
+     onaylanan tasarım linkleri, Bölüm 3.6)
    - Gerekirse yeni konu için yeni dosya açılır; CLAUDE.md'ye referansı
      eklenir. Ana kural: bilgi TEK yerde yaşar, başka yerden referansla
      gösterilir — aynı bilgi iki dosyaya kopyalanmaz.
@@ -969,11 +1234,12 @@
      gruplar, kalan süre ve faz detayları kullanıcıya buradan görünür. Bu
      yüzden PLAN.md ve faz dosyaları `hub/README.md`'deki biçime uyar ve
      faz dosyasındaki bitti kriterleri İŞ İLERLEDİKÇE işaretlenir.
-   - İHTİYAÇ MERKEZİ: Kesintisiz çalışma sırasında (Bölüm 17.7)
-     kullanıcıdan gereken HER ŞEY — API key'ler, service account dosyaları,
-     FTP bilgileri, store hesap erişimleri, panel ayarları, onay gerektiren
-     harici adımlar — çalışmayı DURDURMADAN `hub/needs/<id>.json` kaydı
-     olarak eklenir. Kullanıcı sayfada formu doldurup gönderir.
+   - İHTİYAÇ MERKEZİ: Kesintisiz çalışma sırasında (Bölüm 17.7), Bölüm
+     16.7'den (önce Claude yapar) sonra hâlâ kullanıcıdan gereken her şey
+     — girişler, ödemeler, doğrulamalar, yalnızca kullanıcının
+     oluşturabileceği anahtarlar, kararını gerektiren harici adımlar —
+     çalışmayı DURDURMADAN `hub/needs/<id>.json` kaydı olarak eklenir.
+     Kullanıcı sayfada formu doldurup gönderir.
    - Her kayıt, kullanıcıyı hiç bağlamı yokmuş gibi yönlendirir: ne
      gerektiği, neden gerektiği, hangi faz(lar)ı ve işleri beklettiği,
      ön koşullar, ADIM ADIM nereden bulunacağı (menü yolu + doğrudan link),
@@ -1001,6 +1267,41 @@
    - CLAUDE.md'de Proje Merkezi'ne açık referans bulunur; session başı
      hatırlatmasında bekleyen kayıtlar link ile "senden şunlar
      bekleniyor" diye özetlenir.
+7. ÖNCE CLAUDE YAPAR — İhtiyaç Merkezi yalnızca Claude'un yapamadıkları
+   içindir. Bir kayıt açmadan önce Claude sırayla bir CLI'ı (gh, firebase,
+   flutterfire, supabase, gcloud, xcrun, API anahtarıyla fastlane), sonra
+   bağlı bir MCP'yi, sonra kullanıcının giriş yapmış tarayıcısında Chrome
+   MCP'yi dener.
+   - Sormadan: salt okunur ve yerel işler — konsollardan ID ve ayar okumak
+     (Bölüm 12.8'deki hesap kontrolünden sonra), anahtar ve şifreleri
+     yerelde doğrudan dosyaya üretmek (keystore, JWT secret'ları) ve proje
+     dışında hiçbir şeyi değiştirmeyen CLI çağrıları.
+   - Sohbette TEK onaydan sonra: kullanıcının hesaplarında bir şey
+     oluşturan ya da değiştiren her şey — projeler, uygulamalar ve
+     kaynaklar (Firebase, Play Console, App Store Connect, AdMob,
+     RevenueCat, Supabase, DNS), anahtar dosyası indirmek (her biri adı ve
+     kaynağıyla), konsol formu göndermek. Bunlar numaralı tek bir listede toplanır ("Chrome'da
+     şunları yapacağım: 1) … 2) … — onaylıyor musun?"), kullanıcı bir kez
+     cevaplar. Koşullar ve beyanlar kullanıcıya gösterilir, yalnızca açık
+     "evet"inden sonra kabul edilir.
+   - Yalnızca kullanıcı: giriş yapmak, şifreler, 2FA ve passkey'ler;
+     geliştirici ya da servis hesabı açmak; ödemeler ve ücretler; kimlik,
+     vergi, banka ve şirket doğrulaması; CAPTCHA; üçüncü taraf bir web
+     formuna secret yazmak. Gerisini Claude hazırlar (dosyalar hazır, doğru
+     sayfa açık), kayıt birkaç tıklamada biter.
+   - Secret'lar asla sohbetten, ekran görüntülerinden ya da sayfa
+     metninden geçmez. Anahtar dosyası indirilir ve doğrudan
+     `hub/inbox/files/<id>/` altına (geçici, gitignore'lu gelen kutusu)
+     taşınır. Konsolda gösterilen bir anahtar, ekranda açığa çıkarılmadan
+     konsolun kendi Kopyala butonuyla kopyalanır ve pano komutuyla
+     (macOS'ta `pbpaste`, Linux'ta `wl-paste` ya da `xclip -o`, Windows'ta
+     `Get-Clipboard`) `hub/inbox/` altına yazılır; ardından pano
+     temizlenir. Biçimi değeri yazdırmadan kontrol edilir (`jq -e`,
+     `grep -c`) ve normal akışla işlenir (Bölüm 16.6, `hub/README.md`).
+   - Claude'un kendi tamamladığı kayıtlar da yazılır: zaten işlenmiş,
+     `processedBy: "claude"` ve ne yapıldığını anlatan bir notla (asla
+     değer değil). Böylece hub kullanıcı adına neyin halledildiğini
+     gösterir ve iş gerekirse elle yeniden yapılabilir.
 
 ## 17. Çalışma Şekli (KESİN)
 
@@ -1009,33 +1310,44 @@
    kuralların docs/RULES.md'ye yazılması, ona referans veren indeks
    niteliğinde KISA bir CLAUDE.md (Bölüm 16.1), boş TODO.md ve Proje
    Merkezi'nin (hub/, Bölüm 16.6) kurulmasıdır. Sıralama kesindir:
-   1) Monorepo iskeletini kur (Bölüm 15.4 — `git init -b main`,
-      `assets/repo/`), docs/RULES.md + CLAUDE.md (indeks) + TODO.md +
-      hub/ oluştur, ilk commit'i at, GitHub private reposunu bağla
-      (Bölüm 15.10), Proje Merkezi sunucusunu başlatıp linki ver
-   2) Araç (MCP/CLI) kontrolü yap — bkz. Bölüm 17.0.1
-   3) Bölüm 17.8'deki soruları sor, cevapları CLAUDE.md'ye işle
-   4) Planı/fazları sun, onay al
-   5) Onaylanan planı PLAN.md indeksi + docs/plan/phase-XX dosyaları
-      olarak yaz, fazların öngörülebilen dış ihtiyaçlarını İhtiyaç
-      Merkezi'nde aç ve commit'le (Bölüm 17.3.3, 16.6)
-   6) İşe başla
+   1) `git init -b main`; docs/RULES.md + CLAUDE.md (indeks) + TODO.md +
+      hub/ oluştur; ilk commit'i at; Proje Merkezi sunucusunu başlatıp
+      linki ver
+   2) Başlangıç görüşmesini yap (Bölüm 17.8–17.9); cevapları
+      docs/PRODUCT.md ve docs/DECISIONS.md'ye yaz, CLAUDE.md'yi güncelle
+   3) Seçilen yığın için araç (MCP/CLI) kontrolü yap — bkz. Bölüm 17.0.1
+   4) Monorepo iskeletini yalnızca seçilen uygulamalarla kur (Bölüm 15.4 —
+      `assets/repo/`) ve GitHub private reposunu bağla (Bölüm 15.10)
+   5) Araştır, sonra TEK onay turu: ad ve paket adı, ASO kelimeleri,
+      reklam ve push planları, SEO kelimeleri (her biri yalnızca ilgiliyse)
+      ve bağımlılık grafiğiyle faz planı (Bölüm 17.8)
+   6) Onaylanan planı PLAN.md indeksi + docs/plan/phase-XX dosyaları
+      olarak yaz; Claude'un kendisinin yapabildiklerini yap, kalanı
+      İhtiyaç Merkezi kaydı olarak aç (Bölüm 16.6–16.7); commit'le (Bölüm
+      17.3.3)
+   7) İşe başla — Claude Design seçildiyse önce tasarım ve onay kapısı
+      gelir (Bölüm 3.6)
    Bu sıra, session erken kesilse bile kuralların kalıcı olmasını garanti
    eder. CLAUDE.md oluşturulmadan tek satır proje kodu yazılmaz.
-0.1. Araç (MCP/CLI) kontrolü ZORUNLUDUR: İşe başlamadan önce, projede
-   ihtiyaç duyulacak bağlantı araçlarının mevcut ve çalışır olup olmadığı
-   kontrol edilir:
-   - Supabase MCP: DB şeması, migration, RLS ve sorgu işlemleri için.
-   - Firebase CLI: FCM, Crashlytics, Analytics ve (seçildiyse) Hosting
-     deploy işlemleri için (`firebase --version` + oturum durumu
-     kontrol edilir).
-   - Chrome MCP (tarayıcı otomasyonu): admin panel ve web sitesinin
-     gerçek tarayıcıda test edilmesi ile AdMob/RevenueCat/store
-     panellerinde doğrulama gereken adımlar için. Store konsollarında
-     her işlemden önce hesap doğrulanır, birden fazla hesap varsa
-     kullanıcıya sorulur (Bölüm 12.8).
-   - RevenueCat MCP: ürün/entitlement/offering yapılandırması ve satın
-     alma tarafının yönetimi için.
+0.1. Araç (MCP/CLI) kontrolü ZORUNLUDUR: yığın seçildikten sonra,
+   ihtiyaç duyduğu araçların mevcut ve çalışır olup olmadığı kontrol
+   edilir:
+   - Backend araçları: Supabase için Supabase MCP + Supabase CLI
+     (self-hosted Supabase'te MCP bir SSH tüneliyle); Firebase backend
+     için Firebase CLI.
+   - Firebase CLI + FlutterFire CLI: HER ZAMAN — Analytics, Crashlytics,
+     FCM ve (seçildiyse) Hosting için (`firebase --version`,
+     `flutterfire --version` ve oturum durumu kontrol edilir).
+   - Chrome MCP (tarayıcı otomasyonu): Claude'un yaptığı konsol işleri
+     (Bölüm 16.7), admin panel ve web sitesinin gerçek tarayıcıda test
+     edilmesi ve AdMob/RevenueCat/store panellerinde doğrulama için. Store
+     konsollarında her işlemden önce hesap doğrulanır, birden fazla hesap
+     varsa kullanıcıya sorulur (Bölüm 12.8).
+   - RevenueCat MCP: gelir modelinde satın alma varsa — ürünler,
+     entitlement'lar, offering'ler ve deneyler.
+   - GitHub CLI (`gh`): repo, Actions secret'ları ve release'ler.
+   - Claude Design: bu yaklaşım seçildiyse "Design" ve "Design System"
+     türleriyle Artifact aracı (Bölüm 3.6).
    Kontrol sonucu bana raporlanır: hangileri BAĞLI, hangileri EKSİK.
    Eksik olanlar için benden kurulum/bağlantı İSTENİR — hangi aracın
    hangi iş için gerektiği açıklanarak. O araca bağımlı işler eksik
@@ -1046,8 +1358,9 @@
    kullanılabilir olduğunu bilir ve session başında hâlâ eksik olan
    araç varsa bana tekrar hatırlatır.
 1. Bir işten emin değilsen ilerlemeden önce KESİNLİKLE soru sorarsın;
-   işin netliğini ayarlarsın. ANCAK tüm sorular İŞİN EN BAŞINDA toplanıp
-   sorulur (bkz. Bölüm 17.6-17.7); iş başladıktan sonra soru sorulmaz.
+   işin netliğini ayarlarsın. ANCAK sorular yalnızca başlangıç
+   görüşmesinde ve onay turunda (Bölüm 17.8–17.9) ve Bölüm 17.7'deki
+   kapılarda sorulur; iş başladıktan sonra başka soru sorulmaz.
 2. Büyük işlerde önce kısa bir plan sunar, onayımı aldıktan sonra kodlarsın.
 3. Fazlandırma kuralı: Projeyi fazlara böldüysen, HER FAZI oldukça detaylı
    yazarsın — çünkü fazları subagent'lar uygulayacaktır ve subagent senin
@@ -1178,8 +1491,10 @@
    içindir ve tüm subagent görevlerinde geçerlidir.
 6. Sorular EN BAŞTA sorulur: Bölüm 17.8'deki liste dahil, plana ve fazlara
    dair TÜM sorular ve onaylar (reklam yerleşim planı, ASO kelimeleri,
-   bundle id vb.) proje başlamadan tek seferde toplanıp bana sorulur.
-   Cevaplar alınıp CLAUDE.md'ye işlendikten sonra iş başlar.
+   bundle id vb.) proje başlamadan sorulur: kararlar görüşme turlarında,
+   onaylar TEK bir onay turunda (Bölüm 17.8–17.9). Cevaplar alınıp
+   kaydedildikten sonra (docs/PRODUCT.md, docs/DECISIONS.md, CLAUDE.md'den
+   referanslı) iş başlar.
 7. Fazlar arası geçişte SORU SORULMAZ: Ben özel bir durum belirtmediysem,
    fazlar arasında onay/soru için durulmaz; plan SONUNA KADAR kesintisiz
    uygulanır. Bir fazda öngörülmeyen ciddi bir engel çıkarsa (eksik
@@ -1187,35 +1502,89 @@
    durumlar) o iş atlanmaz, uydurulmaz; ihtiyaç İhtiyaç Merkezi'ne yazılır
    (Bölüm 16.6), iş TODO.md'ye bağlanır ve araç/bilgi gerektirmeyen
    işlerle KESİNTİSİZ devam edilir. Yalnızca projenin TAMAMI bloklandıysa
-   bana sorulur ve durum gerekçesiyle açıklanır. İSTİSNA: store
-   konsolunda hesap belirsizliği varsa her zaman durulup sorulur
-   (Bölüm 12.8). Estetik veya
+   bana sorulur ve durum gerekçesiyle açıklanır. İSTİSNALAR: store
+   konsolundaki hesap belirsizliği işi her zaman durdurur ve soru sorulur
+   (Bölüm 12.8); Claude Design seçildiyse arayüz fazları tasarım onayını
+   bekler, diğer fazlar devam eder (Bölüm 3.6). Estetik veya
    tercihe dayalı kararlar için durulmaz; bu dokümandaki kurallara göre en
    iyi karar verilir ve iş sonunda verilen kararlar bana raporlanır.
-8. Projeye başlamadan önce bana sorulacaklar (cevaplar CLAUDE.md'ye işlenir):
-   - Web varlığı: landing mi, tam site mi, ikisi de mi? (Bölüm 6)
-   - Admin panel deploy hedefi: Hostinger mi, Firebase Hosting mi? (Bölüm 7)
-   - Admin panel giriş yöntemi ve admin hesapları (Bölüm 5.4)
-   - Proje global mi, hedef dil/pazar ne? Uygulamanın destekleyeceği diller
-     neler? Varsayılan dil ne olmalı? (Bölüm 2.5, 11.4 ve 12.2 — i18n ve
-     store metadata bu dillere göre kurulur)
-   - Reklam yerleşim planı onayı (Bölüm 8.5)
-   - Push bildirim stratejisi onayı — retention planı, bildirim türleri
-     ve sıklık (Bölüm 9.5)
-   - Hedef ülkeler/mağazalar ve bilinen rakip uygulamalar (Bölüm 11.1)
-   - Marka adı fikri var mı; alan adı mevcut mu, hangisi? (Bölüm 8.4, 10)
-   - ASO anahtar kelime önerileri ve uygulama adı/paket adı adaylarının
-     onayı — benzersizlik kontrolü yapılmış olarak (Bölüm 11.1, 8.4)
-   - SEO hedef anahtar kelimeleri onayı (Bölüm 10.4)
-   - Yayın hesapları: hangi Play Console ve hangi Apple Developer hesabı?
-     (İhtiyaç Merkezi `store-accounts` kaydıyla alınır — Bölüm 12.8)
-   - Storage gerekiyorsa: R2 mi Supabase Storage mı (Bölüm 1 ve 13.8)
-   - Web deploy hedefi Hostinger ise FTPS destekli mi (Bölüm 12.6)
-   - Yayın sonrası operasyon: günlük rutin açık mı, otonomi seviyesi ne
-     (Bölüm 18.2)
+8. Başlangıç kararları, Bölüm 17.9'daki yöntemle sorulur (cevaplar
+   `docs/PRODUCT.md`'ye, kararlar `docs/DECISIONS.md`'ye yazılır; ikisi de
+   CLAUDE.md'den referanslanır):
+   - 1. tur, kapsam: platformlar (iOS + Android ya da yalnızca biri);
+     backend (Supabase Cloud, kullanıcının sunucusunda self-hosted
+     Supabase, Firebase, backend yok ya da kullanıcının kendi API'si —
+     Bölüm 13.11); web varlığı (yok, landing page, tam site, ikisi —
+     Bölüm 6); gelir modeli (Bölüm 8.11).
+   - 2. tur, yalnızca 1. turun gerekli kıldıkları: admin panel ve giriş
+     yöntemi (yalnızca backend varsa — Bölüm 7.1, 5.4); web ve panel için
+     hosting (yalnızca varsa — Bölüm 1, 7.3); backend bölgesi ya da
+     sunucusu; hesaplar ve misafir modu (Bölüm 5.7); yalnızca telefon mu,
+     tablet de mi (tablet, iPad ve tablet ekran görüntüsü setleri ekler —
+     Bölüm 11.3); dosya saklanıyorsa storage (R2 ya da Supabase Storage —
+     Bölüm 1, 13.8).
+   - 3. tur, ürün: desteklenecek diller ve varsayılan dil (Bölüm 2.5,
+     11.4, 12.2); hedef ülkeler ve bilinen rakipler (Bölüm 11.1); hedef
+     kitle, çocukların dahil olup olmadığı da (Bölüm 8.12); push
+     bildirimleri (Bölüm 9); marka adı fikri, alan adı, logo ya da renkler
+     (Bölüm 8.4, 10).
+   - 4. tur, tasarım ve operasyon: tasarım yaklaşımı (Bölüm 3.5); v1
+     özellik kapsamı (Claude fikirden bir liste önerir, kullanıcı
+     işaretler); yayın sonrası operasyon ve otonomi seviyesi (Bölüm 18.2).
+   - Onay turu, Claude'un araştırmasından sonra, tek mesajda: benzersizlik
+     kontrolü yapılmış uygulama adı ve paket adı adayları (Bölüm 8.4,
+     11.1); ASO kelimeleri; reklam yerleşim planı (yalnızca reklam varsa —
+     Bölüm 8.5); push stratejisi (yalnızca push varsa — Bölüm 9.5); SEO
+     kelimeleri (yalnızca web sitesi varsa — Bölüm 10.4); faz planı (Bölüm
+     17.2).
+   - Yayın hesapları `store-accounts` kaydıyla netleşir; Claude
+     yapabildiğinde bu kaydı konsollardan kendisi doldurur (Bölüm 12.8).
+   - Asla sorulmaz: kullanıcının zaten söyledikleri; zorunlu parçalar
+     (Firebase Analytics + Crashlytics, i18n, testler, release
+     otomasyonu); Claude'un kendisinin öğrenebileceği bilgiler (adın
+     store'larda boş olması, FTPS desteği, alan adının müsaitliği).
    ERİŞİM BİLGİLERİ (FTP şifresi, R2 anahtarları, API key'ler, store
-   hesap dosyaları) sohbetten İSTENMEZ — İhtiyaç Merkezi kaydı olarak
-   açılır (Bölüm 16.6); sorular yalnızca karar ve onaylar içindir.
+   hesap dosyaları) sohbetten İSTENMEZ — Claude kendisi alır ya da İhtiyaç
+   Merkezi kaydı açar (Bölüm 16.6–16.7); sorular yalnızca karar ve onaylar
+   içindir.
+9. Başlangıç görüşmesi yöntemi:
+   - Sormadan önce Claude, kullanıcının fikrinde ve mesajlarında zaten
+     bulunan her cevabı çıkarır ve onları asla yeniden sormaz.
+   - Sorular, varsa yapılandırılmış soru aracıyla sorulur (Claude Code:
+     AskUserQuestion): tur başına en fazla 4 soru ve soru başına 2–4
+     seçenek; en iyi pratik seçenek ilk sırada ve "(Önerilen)" işaretli,
+     her seçeneğin ne anlama geldiği ve maliyeti tek satırda. Araç yoksa
+     önerilen varsayılanla numaralı bir liste. Serbest metin her zaman
+     mümkündür.
+   - Turlar UYARLANIR: her tur yalnızca önceki cevapların gerekli kıldığını
+     sorar. Web sitesi yok → hosting, SEO ya da landing sorusu yok;
+     backend yok → panel, bölge ya da hesap sorusu yok; reklam yok →
+     reklam sorusu yok; tek dil → varsayılan dil sorusu yok.
+   - Önerilen seçenekler bu dokümanın kurallarına ve güncel store
+     politikalarına uyar; her zaman "Önerilen"i seçen bir kullanıcı da
+     eksiksiz ve uyumlu bir proje alır.
+   - Son turdan sonra Claude kararları 5–10 satırda özetler ve
+     araştırmaya geçer; kullanıcı yine de herhangi bir satırı düzeltebilir.
+10. Konuşma dili: Claude kullanıcıyla HER mesajda kullanıcının dilinde
+   konuşur — sorular ve soru aracının seçenek etiketleri, planlar,
+   özetler, durum raporları, İhtiyaç Merkezi kayıtları ve hub — skill
+   dosyaları, araç çıktıları ya da subagent raporları İngilizce olsa bile.
+   Dil, kullanıcının kendi yazdıklarından ya da oturumun ayarlı yanıt
+   dilinden alınır; yine de belli değilse (ör. komut hiç metin olmadan
+   çalıştırıldıysa) Claude bir kez, iki dilde sorar. Dil CLAUDE.md'ye
+   yazılır ("Konuşma dili: …"), böylece sonraki her session onu korur;
+   yalnızca kullanıcı isterse değişir.
+11. Her plan, cevaplar ne olursa olsun şunları içerir: Firebase Analytics
+   ve Crashlytics'in iki platformda doğrulandığı temel altyapı fazı (Bölüm
+   14.1), seçilen tüm diller için i18n iskeleti, tasarım token'larından
+   tema, router, hata yönetimi ve zorunlu güncelleme (Bölüm 4.4); yasal
+   sayfalar (Bölüm 6.5); gizlilik beyanları ve privacy manifest (Bölüm
+   8.9); hesap varsa hesap silme (Bölüm 5.5); her dil için store
+   listeleri, ekran görüntüleri ve release otomasyonu (Bölüm 11, 12); App
+   Review notları (her özelliğe nasıl ulaşılır, premium nasıl test
+   edilir); ve Claude Design seçildiyse tasarım fazı ve onay kapısı (Bölüm
+   3.6). Bunlardan biri eksik olan plan eksiktir ve sunulmadan önce
+   düzeltilir.
 
 ## 18. Yayın Sonrası Operasyon (AÇIKSA KESİN)
 

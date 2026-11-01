@@ -6,6 +6,12 @@ The version in `.claude-plugin/plugin.json` is what users receive on update — 
 
 ## [Unreleased]
 ### Added
+### Changed
+### Fixed
+### Removed
+
+## [1.2.0] - 2026-11-01
+### Added
 - Adaptive kickoff interview (rules Sections 17.8–17.9, EN + TR): decisions are asked in up to four rounds with the question tool, each option with a recommended best-practice default; answers the user already gave are never asked again, and questions made irrelevant by earlier answers are skipped (no website → no hosting or SEO questions). Answers go to `docs/PRODUCT.md` and `docs/DECISIONS.md`.
 - Backend choice (Sections 1, 13.11): Supabase Cloud (default), self-hosted Supabase on your own server (with the hardening checklist: public URLs, SMTP, closed database ports, off-site backups), Firebase, no backend or your own API. Supabase is no longer assumed.
 - Claude Design flow (Sections 3.5–3.11) and the `DESIGN_BRIEF` template (EN + TR): a Design System and a Design canvas created in Claude with the Artifact tool, reviewed and approved by the user before any UI is coded; quality bar for originality, rich motion, complete states, onboarding, a store-compliant paywall, ad placements and retention.
@@ -18,8 +24,6 @@ The version in `.claude-plugin/plugin.json` is what users receive on update — 
 - Kickoff order: the interview now comes before the monorepo skeleton, so only the chosen apps are created, and the tool check covers the chosen stack.
 - The admin panel is a kickoff decision (recommended with a backend) instead of always required; web and panel hosting can be Hostinger, Firebase Hosting, Cloudflare Pages or your own server.
 - Firebase Analytics and Crashlytics are set up by Claude itself with the Firebase and FlutterFire CLIs in the base phase, including symbol upload, whatever backend is chosen.
-### Fixed
-### Removed
 
 ## [1.1.0] - 2026-10-14
 ### Added

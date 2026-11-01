@@ -1,7 +1,7 @@
 {
   "name": "zero-to-store",
   "displayName": "zero-to-store",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "From app idea to the App Store & Google Play: a Flutter kickoff with an adaptive interview, your choice of backend (Supabase, self-hosted Supabase, Firebase or none), Claude Design screens, strict ASO/SEO and store-policy rules, fully automated multi-language releases and a live local Project Hub.",
   "author": {
     "name": "Ali Demirci",

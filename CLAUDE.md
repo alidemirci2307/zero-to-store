@@ -59,7 +59,7 @@ install.sh                        manual install (non-plugin)
 | Web/panel deploy on **tag**, not on every main push; main push runs CI only; rollback = re-run deploy workflow with an old tag | Versioned, reversible deploys |
 | Mobile: `internal` (Play internal + closed testing "testers", TestFlight external group "testers" auto-created) → `promote` (same build to production, no rebuild) → `production` only for hotfix | Build once, promote |
 | Store account safety: `store-accounts` need record first (Claude fills it from the consoles, the user confirms). Claude stops and asks if a console shows multiple accounts (one of the two gates of rules Section 17.7). `fastlane verify_accounts` aborts release if keys belong to another account | Wrong-account publishing is irreversible |
-| Kickoff = adaptive interview (Sections 17.8–17.9): ≤4 rounds via AskUserQuestion, the best-practice option first and marked Recommended, never asking what the user said or ruled out; then ONE approval round. After that only two gates: store-account ambiguity and the design approval | Maintainer (2026-11-01): ask the critical questions in the right place with best-practice defaults; no web → no web questions |
+| Kickoff = adaptive interview (Sections 17.8–17.9): ≤4 rounds via AskUserQuestion, the best-practice option first and marked Recommended, never asking what the user said or ruled out; then ONE approval round. Round 4 asks whether Claude may ask questions between phases: "no questions" (default) is noted as "all questions are asked at the start, during planning"; "ask at phase transitions" batches questions after each phase or group. Two gates always apply: store-account ambiguity and the design approval | Maintainer (2026-11-01): ask the critical questions in the right place with best-practice defaults; no web → no web questions |
 | Backend is a kickoff choice. The rules stay written for Supabase, and Section 13.11 maps each term to self-hosted Supabase, Firebase, no backend or the user's own API | Users may not want Supabase or want it on their own VPS. One rule text plus a mapping keeps EN/TR parity and context cost manageable, instead of parallel rule sets |
 | Claude Design = the "Design" and "Design System" artifact types that Claude Code creates with its Artifact tool (the standalone claude.ai/design site closes 2026-12-14; never send users there). The design approval gates UI phases only; non-UI phases continue | Design before code with the user's approval, without blocking backend/release work |
 | Claude does it first (Section 16.7): CLI → MCP → Chrome MCP, one batched confirmation for anything that changes the user's accounts. Secrets move via download or clipboard (`pbpaste`) into `hub/inbox/`, never through the chat or screenshots. User-only: sign-in, passwords/2FA, account creation, payments, verification, CAPTCHAs, typing secrets into third-party forms. Records Claude completed get `processedBy: "claude"` (hub badge) | Maintainer: Claude left solvable needs to the user. The user-only list mirrors Claude's own browser-safety limits, so the skill never asks Claude for something it would refuse |
@@ -227,18 +227,22 @@ turning on auto-update.
   - Planned later (not in the next release): the data scripts the
     DAILY_OPS template looks for in `ops/scripts/`: store reviews +
     replies, Play vitals (Reporting API), GA4, ASO ranks.
-- [ ] **Unreleased (2026-11-01), next minor = v1.2.0**, all in CHANGELOG
-  `[Unreleased]`: adaptive kickoff interview, backend choice (Section
-  13.11), Claude Design flow + `DESIGN_BRIEF` template, "Claude does it
-  first" (Section 16.7) with the hub's "Done by Claude" badge, language
-  lock, legal-only website, optional admin panel, plus new rules 2.5 (RTL),
-  4.7–4.8, 5.5 (Apple token revocation), 5.7, 8.11–8.12, 14.10, 17.11.
-  validate.sh is green. Not committed yet.
+- [x] **v1.2.0 released** (2026-11-01) via `./scripts/release.sh minor`:
+  adaptive kickoff interview, backend choice (Section 13.11), Claude Design
+  flow + `DESIGN_BRIEF` template, "Claude does it first" (Section 16.7)
+  with the hub's "Done by Claude" badge, language lock, legal-only website,
+  optional admin panel, plus new rules 2.5 (RTL), 4.7–4.8, 5.5 (Apple
+  token revocation), 5.7, 8.11–8.12, 14.10, 17.11. `release.yml` and CI
+  are green; the release has `zero-to-store-skill.zip` (224 KB). Team
+  members get it on their next start (autoUpdate).
   - Not verified live: a full kickoff run with the new interview, Design
     artifact creation from a user project, and the Chrome clipboard flow
     (`pbpaste` after a console Copy button).
-  - Before releasing: update the launch kit texts (they still say
-    "Flutter + React + Supabase" and "asks every question up front").
+- [ ] **Unreleased** (CHANGELOG `[Unreleased]`): the kickoff asks whether
+  Claude may ask questions between phases (Sections 17.7–17.8). Default
+  "no questions": CLAUDE.md and `docs/DECISIONS.md` note that all
+  questions are asked at the start, during planning. Release it as a patch
+  when the maintainer says so.
 - [ ] Maintainer (manual, no API): upload `docs/images/banner.png` under
   Settings → General → Social preview.
 - [ ] Deferred by the maintainer: dogfood the skill end to end on a small real
@@ -249,8 +253,10 @@ turning on auto-update.
   keystores.
 - [ ] **Promotion: launch kit ready, not posted yet.** Page with copy buttons
   and limit counters: https://claude.ai/artifact/24uqFZhCyFVfPF7oK7mnMa (the
-  maintainer's artifact; source was
-  `<scratchpad>/launch-kit.html`, republish edits to the same URL).
+  maintainer's artifact; texts updated for v1.2 on 2026-11-01, version 2).
+  The scratchpad source does not survive sessions: read the live page with
+  the Artifact tool (`action: "read"`), edit a local copy without the
+  document wrapper, check the limits and republish with the same `url`.
   - Texts (EN): X thread (6 tweets), Show HN title + first comment,
     r/ClaudeAI, r/FlutterDev, LinkedIn, awesome-list entry + PR text,
     Anthropic plugin directory short/long description, Discord.

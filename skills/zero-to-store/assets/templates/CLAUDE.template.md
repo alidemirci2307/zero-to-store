@@ -56,7 +56,7 @@ Read the relevant section before doing any work. Summary reminder:
 - Sign-in is Google + Apple only (no email); guest mode when the core works without an account
 - Monetization as chosen: AdMob ads hidden for premium, IAP via RevenueCat, a policy-safe paywall (RULES Section 3.9)
 - UI follows the approved design exactly (`docs/design/DESIGN.md`)
-- Phases run via subagents (Sonnet), independent ones in PARALLEL; no questions between phases except the gates of RULES Section 17.7
+- Phases run via subagents (Sonnet), independent ones in PARALLEL; questions between phases: {{PHASE_QUESTIONS}} (`none` = all questions are asked at the start, during planning — RULES Section 17.7)
 - Claude does it first (CLI, MCP, Chrome — RULES Section 16.7); only the rest goes to the Needs Center (hub/needs/); never ask for keys in chat
 - Store operations only on the CORRECT account listed in docs/RELEASE.md; with multiple accounts, ASK first (Section 12.8)
 - Store texts/visuals in EVERY supported language; run `fastlane check_metadata` before release

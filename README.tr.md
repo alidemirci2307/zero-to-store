@@ -24,7 +24,8 @@ bir standarttır. Her şeyi yerel **Proje Merkezi**'nden canlı izlersin.
 - **Gerçek bir başlangıç görüşmesi.** `/zero-to-store:kickoff <fikrin>`.
   Claude kritik soruları birkaç uyarlanan turda, her birinde önerilen en iyi
   pratik cevapla sorar ve önceki cevaplarının gereksiz kıldığı soruları
-  atlar. Sonra planın tamamını durmadan uygular.
+  atlar. Sonra planın tamamını durmadan uygular; istersen fazlar arasında
+  sana danışır.
 - **Yığın senin seçimin.** Supabase Cloud, kendi sunucunda self-hosted
   Supabase, Firebase ya da hiç backend olmadan; Hostinger, Firebase Hosting,
   Cloudflare Pages ya da kendi sunucun. Firebase Analytics ve Crashlytics her
@@ -98,8 +99,9 @@ Diğer kurulum yolları:
 1. **Önce hafıza.** CLAUDE.md, kurallar, TODO.md ve Proje Merkezi her şeyden
    önce oluşturulup commit'lenir.
 2. **Başlangıç görüşmesi.** Platformlar, backend, web, gelir modeli, diller,
-   hedef kitle, tasarım yaklaşımı ve v1 kapsamı; uyarlanan turlarda, önerilen
-   cevaplarla sorulur. Gizli bilgiler sohbette asla istenmez.
+   hedef kitle, tasarım yaklaşımı, v1 kapsamı ve fazlar arasında soru
+   sorulup sorulmayacağı; uyarlanan turlarda, önerilen cevaplarla sorulur.
+   Gizli bilgiler sohbette asla istenmez.
 3. **İskelet ve araçlar.** Yalnızca seçtiğin uygulamaları içeren bir
    monorepo, private bir GitHub reposu ve yığınının gerektirdiği araçların
    kontrolü.

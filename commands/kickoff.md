@@ -34,8 +34,9 @@ Apply the zero-to-store skill:
       as Needs Center records; commit
    7) With Claude Design: brief → Design System → Design canvas → the
       user's approval before the UI phases (Section 3.6). Implement the
-      phases with Sonnet subagents, parallel groups at the same time, and no
-      questions between phases except the gates of Section 17.7
+      phases with Sonnet subagents, parallel groups at the same time.
+      Ask questions between phases only if the user chose that in the
+      interview; otherwise none except the two gates of Section 17.7
 
 Do not write a single line of project code until CLAUDE.md has been created.
 

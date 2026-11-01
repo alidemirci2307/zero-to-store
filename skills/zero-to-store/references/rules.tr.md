@@ -1359,8 +1359,9 @@
    araç varsa bana tekrar hatırlatır.
 1. Bir işten emin değilsen ilerlemeden önce KESİNLİKLE soru sorarsın;
    işin netliğini ayarlarsın. ANCAK sorular yalnızca başlangıç
-   görüşmesinde ve onay turunda (Bölüm 17.8–17.9) ve Bölüm 17.7'deki
-   kapılarda sorulur; iş başladıktan sonra başka soru sorulmaz.
+   görüşmesinde ve onay turunda (Bölüm 17.8–17.9), Bölüm 17.7'deki
+   kapılarda ve kullanıcı seçtiyse faz geçişlerinde (Bölüm 17.7) sorulur;
+   iş başladıktan sonra başka soru sorulmaz.
 2. Büyük işlerde önce kısa bir plan sunar, onayımı aldıktan sonra kodlarsın.
 3. Fazlandırma kuralı: Projeyi fazlara böldüysen, HER FAZI oldukça detaylı
    yazarsın — çünkü fazları subagent'lar uygulayacaktır ve subagent senin
@@ -1495,19 +1496,31 @@
    onaylar TEK bir onay turunda (Bölüm 17.8–17.9). Cevaplar alınıp
    kaydedildikten sonra (docs/PRODUCT.md, docs/DECISIONS.md, CLAUDE.md'den
    referanslı) iş başlar.
-7. Fazlar arası geçişte SORU SORULMAZ: Ben özel bir durum belirtmediysem,
-   fazlar arasında onay/soru için durulmaz; plan SONUNA KADAR kesintisiz
-   uygulanır. Bir fazda öngörülmeyen ciddi bir engel çıkarsa (eksik
+7. Faz geçişlerinde soru sorulup sorulmayacağı başlangıç görüşmesindeki
+   seçime uyar (Bölüm 17.8); seçim CLAUDE.md'ye ve docs/DECISIONS.md'ye
+   yazılır:
+   - "Soru sorulmasın" (varsayılan ve önerilen): fazlar arasında onay ya
+     da soru için durulmaz; plan SONUNA KADAR kesintisiz uygulanır. Not
+     şöyle düşülür: "Fazlar arası soru yok: tüm sorular en başta,
+     planlama sırasında sorulur." Bu yüzden Claude öngörülebilen her
+     tercih kararını onay turuna taşır. Yine de ortaya çıkan estetik ya da
+     tercihe dayalı kararlar bu dokümandaki kurallara göre verilir ve iş
+     sonunda bana raporlanır.
+   - "Faz geçişlerinde sorulsun": bir faz ya da paralel grup bittiğinde,
+     entegrasyon ve denetimden sonra Claude ortaya çıkan tercih
+     kararlarını (kapsam, kullanıcı deneyimi, metinler) soru aracıyla tek
+     seferde sorabilir. Cevaba bağlı fazlar bekler; bağımsız fazlar devam
+     eder. Faz ortasında asla sorulmaz; subagent'lar kullanıcıya soru
+     sormaz.
+   İki modda da bir fazda öngörülmeyen ciddi bir engel çıkarsa (eksik
    erişim bilgisi, çelişen gereksinim gibi ilerlemeyi imkansız kılan
    durumlar) o iş atlanmaz, uydurulmaz; ihtiyaç İhtiyaç Merkezi'ne yazılır
    (Bölüm 16.6), iş TODO.md'ye bağlanır ve araç/bilgi gerektirmeyen
-   işlerle KESİNTİSİZ devam edilir. Yalnızca projenin TAMAMI bloklandıysa
-   bana sorulur ve durum gerekçesiyle açıklanır. İSTİSNALAR: store
-   konsolundaki hesap belirsizliği işi her zaman durdurur ve soru sorulur
+   işlerle devam edilir. Yalnızca projenin TAMAMI bloklandıysa bana
+   sorulur ve durum gerekçesiyle açıklanır. İki kapı her zaman geçerlidir:
+   store konsolundaki hesap belirsizliği işi durdurur ve soru sorulur
    (Bölüm 12.8); Claude Design seçildiyse arayüz fazları tasarım onayını
-   bekler, diğer fazlar devam eder (Bölüm 3.6). Estetik veya
-   tercihe dayalı kararlar için durulmaz; bu dokümandaki kurallara göre en
-   iyi karar verilir ve iş sonunda verilen kararlar bana raporlanır.
+   bekler, diğer fazlar devam eder (Bölüm 3.6).
 8. Başlangıç kararları, Bölüm 17.9'daki yöntemle sorulur (cevaplar
    `docs/PRODUCT.md`'ye, kararlar `docs/DECISIONS.md`'ye yazılır; ikisi de
    CLAUDE.md'den referanslanır):
@@ -1528,9 +1541,10 @@
      kitle, çocukların dahil olup olmadığı da (Bölüm 8.12); push
      bildirimleri (Bölüm 9); marka adı fikri, alan adı, logo ya da renkler
      (Bölüm 8.4, 10).
-   - 4. tur, tasarım ve operasyon: tasarım yaklaşımı (Bölüm 3.5); v1
+   - 4. tur, tasarım ve çalışma biçimi: tasarım yaklaşımı (Bölüm 3.5); v1
      özellik kapsamı (Claude fikirden bir liste önerir, kullanıcı
-     işaretler); yayın sonrası operasyon ve otonomi seviyesi (Bölüm 18.2).
+     işaretler); Claude'un fazlar arasında soru sorup sormayacağı (Bölüm
+     17.7); yayın sonrası operasyon ve otonomi seviyesi (Bölüm 18.2).
    - Onay turu, Claude'un araştırmasından sonra, tek mesajda: benzersizlik
      kontrolü yapılmış uygulama adı ve paket adı adayları (Bölüm 8.4,
      11.1); ASO kelimeleri; reklam yerleşim planı (yalnızca reklam varsa —

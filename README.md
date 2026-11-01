@@ -24,7 +24,8 @@ watch everything live in a local **Project Hub**.
 - **A real kickoff interview.** `/zero-to-store:kickoff <your idea>`. Claude
   asks the critical questions in a few adaptive rounds, each with a
   recommended best-practice answer, and skips whatever your earlier answers
-  ruled out. Then it works through the whole plan without stopping.
+  ruled out. Then it works through the whole plan without stopping, or
+  checks in with you between phases if you prefer.
 - **Your stack, your call.** Supabase Cloud, self-hosted Supabase on your own
   server, Firebase or no backend at all; Hostinger, Firebase Hosting,
   Cloudflare Pages or your own server. Firebase Analytics and Crashlytics are
@@ -97,8 +98,9 @@ Other ways to install:
 1. **Memory first.** CLAUDE.md, the rules, TODO.md and the Project Hub are
    created and committed before anything else.
 2. **Kickoff interview.** Platforms, backend, web, monetization, languages,
-   audience, design approach and v1 scope, asked in adaptive rounds with
-   recommended answers. Secrets are never asked in chat.
+   audience, design approach, v1 scope and whether Claude may ask you
+   questions between phases, asked in adaptive rounds with recommended
+   answers. Secrets are never asked in chat.
 3. **Skeleton and tools.** A monorepo with only the apps you chose, a private
    GitHub repo and a check of the tools your stack needs.
 4. **Plan.** An ASO-researched app name and package name (unique in both

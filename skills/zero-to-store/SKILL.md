@@ -54,7 +54,8 @@ if they conflict, the rules file wins. References look like "Section N.M".
    - details only for what was chosen: admin panel, hosting, region or
      server, accounts and guest mode, tablets, storage;
    - product: languages, markets and competitors, audience, push, brand;
-   - design approach (Claude Design recommended), v1 scope, operations.
+   - design approach (Claude Design recommended), v1 scope, whether you may
+     ask questions between phases, operations.
 
    Never ask about what the user ruled out (no website → no hosting or SEO
    questions). Never ask for keys, passwords or files in chat. Record the
@@ -93,7 +94,9 @@ if they conflict, the rules file wins. References look like "Section N.M".
    any UI phase. Non-UI phases run in the meantime.
 9. **Build.** Run phases with Sonnet subagents. Phases in the same parallel
    group run AT THE SAME TIME; each group ends with integration + review.
-   No questions between phases except the gates of Section 17.7.
+   Ask between phases only if the user chose that in the interview;
+   otherwise go to the end without stopping, except at the two gates of
+   Section 17.7 (the note in CLAUDE.md says which mode applies).
    - Tick phase done criteria as work progresses (the hub shows it live).
    - After each phase: update PLAN.md, process submitted needs
      (`node hub/server.mjs --status`) and give a short status (Section

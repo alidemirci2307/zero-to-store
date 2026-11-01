@@ -1404,8 +1404,9 @@
 1. If you are unsure about a task, you MUST ask questions before
    proceeding; you settle the clarity of the task. HOWEVER, questions are
    asked only in the kickoff interview and the approval round (Sections
-   17.8–17.9) and at the gates of Section 17.7; no other questions are
-   asked once the work has started.
+   17.8–17.9), at the gates of Section 17.7 and, if the user chose it, at
+   phase transitions (Section 17.7); no other questions are asked once the
+   work has started.
 2. For large tasks, first present a short plan and code only after getting
    the user's approval.
 3. Phasing rule: If you have divided the project into phases, you write
@@ -1558,22 +1559,32 @@
    decisions in the interview rounds, approvals in ONE approval round
    (Sections 17.8–17.9). The work starts after the answers are received and
    recorded (docs/PRODUCT.md, docs/DECISIONS.md, referenced from CLAUDE.md).
-7. NO QUESTIONS are asked at phase transitions: Unless the user specified
-   otherwise, there is no stopping for approval/questions between phases;
-   the plan is executed UNINTERRUPTED to the END. If a serious
-   unforeseen obstacle arises in a phase (situations that make progress
-   impossible, such as missing access credentials or a conflicting
-   requirement), that task is not skipped or faked; the need is written to
-   the Needs Center (Section 16.6), the task is linked in TODO.md, and work
-   continues UNINTERRUPTED with tasks that do not require the tool/information.
-   The user is asked only if the ENTIRE project is blocked, and the
-   situation is explained with its reasoning. EXCEPTIONS: account ambiguity
-   in a store console always stops the work for a question (Section 12.8);
-   with Claude Design, the UI phases wait for the design approval while the
-   other phases continue (Section 3.6). No stopping for aesthetic or
-   preference-based decisions;
-   the best decision is made according to the rules in this document, and
-   the decisions made are reported to the user at the end of the work.
+7. Questions at phase transitions follow the choice made in the kickoff
+   interview (Section 17.8), which is written to CLAUDE.md and
+   docs/DECISIONS.md:
+   - "No questions" (the default and the recommended option): there is no
+     stopping for approval or questions between phases; the plan is
+     executed UNINTERRUPTED to the END. The note reads "No questions
+     between phases: all questions are asked at the start, during
+     planning", so Claude moves every foreseeable preference decision into
+     the approval round. Aesthetic or preference decisions that still come
+     up are made by the rules of this document and reported to the user at
+     the end of the work.
+   - "Ask at phase transitions": when a phase or parallel group ends, after
+     integration and review, Claude may ask about the preference decisions
+     that came up (scope, UX, wording) in one batch with the question tool.
+     Phases that depend on the answer wait; independent phases continue.
+     Never mid-phase; subagents never ask the user.
+   In both modes, if a serious unforeseen obstacle arises in a phase
+   (situations that make progress impossible, such as missing access
+   credentials or a conflicting requirement), that task is not skipped or
+   faked; the need is written to the Needs Center (Section 16.6), the task
+   is linked in TODO.md, and work continues with tasks that do not require
+   the tool/information. The user is asked only if the ENTIRE project is
+   blocked, and the situation is explained with its reasoning. Two gates
+   always apply: account ambiguity in a store console stops the work for a
+   question (Section 12.8), and with Claude Design the UI phases wait for
+   the design approval while the other phases continue (Section 3.6).
 8. Kickoff decisions, asked with the method of Section 17.9 (answers go to
    `docs/PRODUCT.md`, decisions to `docs/DECISIONS.md`, both referenced
    from CLAUDE.md):
@@ -1594,9 +1605,10 @@
      (Section 11.1); the audience, including whether children are part of
      it (Section 8.12); push notifications (Section 9); a brand name idea,
      domain, logo or colors (Sections 8.4, 10).
-   - Round 4, design and operations: the design approach (Section 3.5);
-     the v1 feature scope (Claude proposes a list from the idea and the
-     user ticks it); post-launch operations and their autonomy level
+   - Round 4, design and way of working: the design approach (Section
+     3.5); the v1 feature scope (Claude proposes a list from the idea and
+     the user ticks it); whether Claude may ask questions between phases
+     (Section 17.7); post-launch operations and their autonomy level
      (Section 18.2).
    - Approval round, after Claude's research, in one message: app name and
      package name candidates with the uniqueness check (Sections 8.4,

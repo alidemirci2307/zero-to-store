@@ -55,7 +55,7 @@ Herhangi bir iş yapmadan önce ilgili bölümünü oku. Özet hatırlatma:
 - Giriş sadece Google + Apple (e-posta yok); ana işlev hesapsız çalışıyorsa misafir modu
 - Gelir modeli seçildiği gibi: AdMob reklamları premium'a gösterilmez, IAP RevenueCat, politikaya uygun paywall (RULES Bölüm 3.9)
 - Arayüz onaylanan tasarıma birebir uyar (`docs/design/DESIGN.md`)
-- Fazlar subagent (Sonnet) ile, bağımsızlar PARALEL; RULES Bölüm 17.7'deki kapılar dışında fazlar arası soru yok
+- Fazlar subagent (Sonnet) ile, bağımsızlar PARALEL; fazlar arası soru: {{FAZ_ARASI_SORU}} (`yok` = tüm sorular en başta, planlama sırasında sorulur — RULES Bölüm 17.7)
 - Önce Claude yapar (CLI, MCP, Chrome — RULES Bölüm 16.7); yalnızca kalanı İhtiyaç Merkezi'ne (hub/needs/); sohbetten key istenmez
 - Store işlemi yalnızca docs/RELEASE.md'deki DOĞRU hesapta; çoklu hesapta önce SOR (Bölüm 12.8)
 - Store metinleri/görselleri desteklenen HER dilde; release öncesi `fastlane check_metadata`

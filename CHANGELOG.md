@@ -6,6 +6,7 @@ The version in `.claude-plugin/plugin.json` is what users receive on update — 
 
 ## [Unreleased]
 ### Added
+- Kickoff question: may Claude ask questions between phases (rules Sections 17.7–17.8, EN + TR)? With "no questions", the default, CLAUDE.md and `docs/DECISIONS.md` note that all questions are asked at the start, during planning, and Claude moves every foreseeable preference decision into the approval round. With "ask at phase transitions", Claude asks in one batch after each phase or parallel group; dependent phases wait, independent ones continue.
 ### Changed
 ### Fixed
 ### Removed
